@@ -16,3 +16,6 @@ run: build
 
 test:
 	go test ./...
+
+test-integration:
+	go test -v -tags=integration -timeout 10m ./...

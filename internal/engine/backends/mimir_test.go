@@ -81,6 +81,7 @@ func TestMimirAdapter_TranslateToPromQL(t *testing.T) {
 func TestMimirAdapter_CalculateStep(t *testing.T) {
 	adapter := NewMimirAdapter("http://localhost:9009", "")
 	
+	now := time.Now()
 	tests := []struct {
 		name      string
 		timeRange TimeRange
@@ -89,40 +90,40 @@ func TestMimirAdapter_CalculateStep(t *testing.T) {
 		{
 			name: "1 hour range",
 			timeRange: TimeRange{
-				Since: time.Now().Add(-1 * time.Hour),
-				Until: time.Now(),
+				Since: now.Add(-1 * time.Hour),
+				Until: now,
 			},
 			wantStep: "15s",
 		},
 		{
 			name: "6 hour range",
 			timeRange: TimeRange{
-				Since: time.Now().Add(-6 * time.Hour),
-				Until: time.Now(),
+				Since: now.Add(-6 * time.Hour),
+				Until: now,
 			},
 			wantStep: "30s",
 		},
 		{
 			name: "24 hour range",
 			timeRange: TimeRange{
-				Since: time.Now().Add(-24 * time.Hour),
-				Until: time.Now(),
+				Since: now.Add(-24 * time.Hour),
+				Until: now,
 			},
 			wantStep: "1m",
 		},
 		{
 			name: "7 day range",
 			timeRange: TimeRange{
-				Since: time.Now().Add(-7 * 24 * time.Hour),
-				Until: time.Now(),
+				Since: now.Add(-7 * 24 * time.Hour),
+				Until: now,
 			},
 			wantStep: "5m",
 		},
 		{
 			name: "30 day range",
 			timeRange: TimeRange{
-				Since: time.Now().Add(-30 * 24 * time.Hour),
-				Until: time.Now(),
+				Since: now.Add(-30 * 24 * time.Hour),
+				Until: now,
 			},
 			wantStep: "1h",
 		},

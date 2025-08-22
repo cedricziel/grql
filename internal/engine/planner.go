@@ -53,7 +53,7 @@ func (p *Planner) createSelectPlan(query *Query, stmt *sqlparser.Select) (*Logic
 		DataSource: query.DataSource,
 		Backend:    backend,
 		TimeRange:  query.TimeRange,
-		Columns:    p.extractColumns(*stmt.SelectExprs),
+		Columns:    p.extractColumns(stmt.SelectExprs.Exprs),
 	}
 	
 	var root PlanNode = scanNode
@@ -76,9 +76,12 @@ func (p *Planner) createSelectPlan(query *Query, stmt *sqlparser.Select) (*Logic
 	}
 	
 	// Add aggregations and grouping
-	if stmt.GroupBy != nil || p.hasAggregates(*stmt.SelectExprs) {
-		aggregates := p.extractAggregates(*stmt.SelectExprs)
-		groupBy := p.extractGroupBy(*stmt.GroupBy)
+	if stmt.GroupBy != nil || p.hasAggregates(stmt.SelectExprs.Exprs) {
+		aggregates := p.extractAggregates(stmt.SelectExprs.Exprs)
+		var groupBy []string
+		if stmt.GroupBy != nil {
+			groupBy = p.extractGroupBy(stmt.GroupBy.Exprs)
+		}
 		
 		root = &AggregateNode{
 			Child:      root,
@@ -113,10 +116,10 @@ func (p *Planner) selectBackend(dataSource DataSource) Backend {
 }
 
 // extractColumns extracts column names from SELECT expressions
-func (p *Planner) extractColumns(selectExprs sqlparser.SelectExprs) []string {
+func (p *Planner) extractColumns(selectExprs []sqlparser.SelectExpr) []string {
 	columns := make([]string, 0)
 	
-	for _, expr := range selectExprs.Exprs {
+	for _, expr := range selectExprs {
 		switch e := expr.(type) {
 		case *sqlparser.AliasedExpr:
 			if colName, ok := e.Expr.(*sqlparser.ColName); ok {
@@ -229,12 +232,14 @@ func (p *Planner) canPushDownFilter(filter Filter, backend Backend) bool {
 }
 
 // hasAggregates checks if SELECT has aggregate functions
-func (p *Planner) hasAggregates(selectExprs sqlparser.SelectExprs) bool {
+func (p *Planner) hasAggregates(selectExprs []sqlparser.SelectExpr) bool {
 	hasAgg := false
 	
-	for _, expr := range selectExprs.Exprs {
+	for _, expr := range selectExprs {
 		sqlparser.Walk(func(node sqlparser.SQLNode) (kontinue bool, err error) {
-			if _, ok := node.(*sqlparser.FuncExpr); ok {
+			switch node.(type) {
+			case *sqlparser.FuncExpr, *sqlparser.CountStar, *sqlparser.Count,
+				*sqlparser.Sum, *sqlparser.Avg, *sqlparser.Max, *sqlparser.Min:
 				hasAgg = true
 				return false, nil
 			}
@@ -246,21 +251,98 @@ func (p *Planner) hasAggregates(selectExprs sqlparser.SelectExprs) bool {
 }
 
 // extractAggregates extracts aggregate functions from SELECT
-func (p *Planner) extractAggregates(selectExprs sqlparser.SelectExprs) []Aggregate {
+func (p *Planner) extractAggregates(selectExprs []sqlparser.SelectExpr) []Aggregate {
 	aggregates := make([]Aggregate, 0)
 	
-	for _, expr := range selectExprs.Exprs {
+	for _, expr := range selectExprs {
 		if aliased, ok := expr.(*sqlparser.AliasedExpr); ok {
-			if funcExpr, ok := aliased.Expr.(*sqlparser.FuncExpr); ok {
-				agg := p.extractAggregate(funcExpr, aliased.As.String())
-				if agg != nil {
-					aggregates = append(aggregates, *agg)
+			var agg *Aggregate
+			alias := aliased.As.String()
+			
+			switch e := aliased.Expr.(type) {
+			case *sqlparser.FuncExpr:
+				agg = p.extractAggregate(e, alias)
+			case *sqlparser.CountStar:
+				if alias == "" {
+					alias = "count_*"
 				}
+				agg = &Aggregate{
+					Function: AggFuncCount,
+					Field:    "*",
+					Alias:    alias,
+				}
+			case *sqlparser.Count:
+				field := "*"
+				if len(e.Args) > 0 {
+					field = p.extractExprField(e.Args[0])
+				}
+				if alias == "" {
+					alias = fmt.Sprintf("count_%s", field)
+				}
+				agg = &Aggregate{
+					Function: AggFuncCount,
+					Field:    field,
+					Alias:    alias,
+				}
+			case *sqlparser.Sum:
+				field := p.extractExprField(e.Arg)
+				if alias == "" {
+					alias = fmt.Sprintf("sum_%s", field)
+				}
+				agg = &Aggregate{
+					Function: AggFuncSum,
+					Field:    field,
+					Alias:    alias,
+				}
+			case *sqlparser.Avg:
+				field := p.extractExprField(e.Arg)
+				if alias == "" {
+					alias = fmt.Sprintf("avg_%s", field)
+				}
+				agg = &Aggregate{
+					Function: AggFuncAvg,
+					Field:    field,
+					Alias:    alias,
+				}
+			case *sqlparser.Max:
+				field := p.extractExprField(e.Arg)
+				if alias == "" {
+					alias = fmt.Sprintf("max_%s", field)
+				}
+				agg = &Aggregate{
+					Function: AggFuncMax,
+					Field:    field,
+					Alias:    alias,
+				}
+			case *sqlparser.Min:
+				field := p.extractExprField(e.Arg)
+				if alias == "" {
+					alias = fmt.Sprintf("min_%s", field)
+				}
+				agg = &Aggregate{
+					Function: AggFuncMin,
+					Field:    field,
+					Alias:    alias,
+				}
+			}
+			
+			if agg != nil {
+				aggregates = append(aggregates, *agg)
 			}
 		}
 	}
 	
 	return aggregates
+}
+
+// extractExprField extracts field name from an expression
+func (p *Planner) extractExprField(expr sqlparser.Expr) string {
+	switch e := expr.(type) {
+	case *sqlparser.ColName:
+		return e.Name.String()
+	default:
+		return "*"
+	}
 }
 
 // extractAggregate extracts a single aggregate function
@@ -293,8 +375,8 @@ func (p *Planner) extractAggregate(funcExpr *sqlparser.FuncExpr, alias string) *
 	
 	// Extract field from function arguments
 	var field string
-	if len(funcExpr.Exprs) > 0 {
-		// Check if it's a simple column or star
+	if funcExpr.Exprs != nil && len(funcExpr.Exprs) > 0 {
+		// Check the type of the first expression
 		switch expr := funcExpr.Exprs[0].(type) {
 		case *sqlparser.ColName:
 			field = expr.Name.String()
@@ -316,10 +398,10 @@ func (p *Planner) extractAggregate(funcExpr *sqlparser.FuncExpr, alias string) *
 }
 
 // extractGroupBy extracts GROUP BY columns
-func (p *Planner) extractGroupBy(groupBy sqlparser.GroupBy) []string {
+func (p *Planner) extractGroupBy(groupBy []sqlparser.Expr) []string {
 	columns := make([]string, 0)
 	
-	for _, expr := range groupBy.Exprs {
+	for _, expr := range groupBy {
 		if colName, ok := expr.(*sqlparser.ColName); ok {
 			columns = append(columns, colName.Name.String())
 		}

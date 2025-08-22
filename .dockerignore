@@ -1,0 +1,48 @@
+# Git files
+.git
+.gitignore
+
+# GitHub files
+.github/
+
+# Build artifacts
+bin/
+dist/
+*.exe
+grql
+
+# Test files
+*_test.go
+*.test
+coverage.out
+coverage.html
+
+# Documentation
+*.md
+docs/
+
+# IDE files
+.idea/
+.vscode/
+*.swp
+*.swo
+*~
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Temporary files
+tmp/
+temp/
+
+# GoReleaser
+.goreleaser.yml
+dist/
+
+# CI/CD
+.golangci.yml
+
+# Other
+.env
+.env.local

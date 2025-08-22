@@ -163,7 +163,7 @@ func TestLokiIntegration(t *testing.T) {
 						{Field: "level", Operator: "=", Value: "error"},
 					},
 				},
-				expected: `|= "error"`,
+				expected: `{level="error"}`,
 			},
 			{
 				name: "service selector",
@@ -172,7 +172,7 @@ func TestLokiIntegration(t *testing.T) {
 						{Field: "service", Operator: "=", Value: "api"},
 					},
 				},
-				expected: `{service="api"}`,
+				expected: `|= "api"`,
 			},
 			{
 				name: "with rate aggregation",

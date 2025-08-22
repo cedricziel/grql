@@ -1,0 +1,180 @@
+run:
+  timeout: 10m
+  tests: true
+  build-tags:
+    - integration
+  skip-dirs:
+    - proto
+  skip-files:
+    - ".*\\.pb\\.go$"
+
+linters:
+  enable:
+    # Default linters
+    - errcheck
+    - gosimple
+    - govet
+    - ineffassign
+    - staticcheck
+    - unused
+    # Additional linters
+    - bodyclose
+    - dogsled
+    - dupl
+    - exportloopref
+    - gci
+    - gocognit
+    - goconst
+    - gocritic
+    - gocyclo
+    - gofmt
+    - goimports
+    - gosec
+    - misspell
+    - nakedret
+    - nolintlint
+    - prealloc
+    - revive
+    - stylecheck
+    - thelper
+    - unconvert
+    - unparam
+    - whitespace
+  disable:
+    - depguard
+    - exhaustive
+    - funlen
+    - gochecknoglobals
+    - gochecknoinits
+    - godox
+    - gomnd
+    - lll
+    - nlreturn
+    - testpackage
+    - wsl
+
+linters-settings:
+  errcheck:
+    check-type-assertions: true
+    check-blank: true
+  
+  govet:
+    check-shadowing: true
+    enable-all: true
+  
+  gocyclo:
+    min-complexity: 15
+  
+  gocognit:
+    min-complexity: 20
+  
+  dupl:
+    threshold: 100
+  
+  goconst:
+    min-len: 3
+    min-occurrences: 3
+  
+  misspell:
+    locale: US
+  
+  goimports:
+    local-prefixes: github.com/cedricziel/grql
+  
+  gci:
+    sections:
+      - standard
+      - default
+      - prefix(github.com/cedricziel/grql)
+  
+  gosec:
+    excludes:
+      - G204 # Subprocess launched with variable
+      - G304 # File path provided as taint input
+    confidence: medium
+    severity: medium
+  
+  gocritic:
+    enabled-tags:
+      - diagnostic
+      - experimental
+      - opinionated
+      - performance
+      - style
+    disabled-checks:
+      - dupImport
+      - ifElseChain
+      - octalLiteral
+      - whyNoLint
+      - wrapperFunc
+  
+  revive:
+    ignore-generated-header: true
+    severity: warning
+    rules:
+      - name: blank-imports
+      - name: context-as-argument
+      - name: context-keys-type
+      - name: dot-imports
+      - name: error-return
+      - name: error-strings
+      - name: error-naming
+      - name: if-return
+      - name: increment-decrement
+      - name: var-naming
+      - name: var-declaration
+      - name: range
+      - name: receiver-naming
+      - name: time-naming
+      - name: unexported-return
+      - name: indent-error-flow
+      - name: errorf
+      - name: empty-block
+      - name: superfluous-else
+      - name: unused-parameter
+      - name: unreachable-code
+      - name: redefines-builtin-id
+
+issues:
+  exclude-rules:
+    # Exclude some linters from running on tests files
+    - path: _test\.go
+      linters:
+        - gocyclo
+        - errcheck
+        - dupl
+        - gosec
+        - gocognit
+    
+    # Exclude known issues in generated files
+    - path: \.pb\.go
+      linters:
+        - all
+    
+    # Exclude example code
+    - path: example_
+      linters:
+        - all
+    
+    # Allow unused parameters in interface implementations
+    - linters:
+        - unparam
+      text: "is always"
+    
+    # Allow context.Background() in main and tests
+    - path: (cmd/.*|.*_test\.go)
+      linters:
+        - noctx
+  
+  # Maximum issues count per one linter
+  max-issues-per-linter: 50
+  
+  # Maximum count of issues with the same text
+  max-same-issues: 3
+  
+  # Show only new issues in pull requests
+  new: false
+
+severity:
+  default-severity: warning
+  case-sensitive: false

@@ -223,7 +223,7 @@ func TestMimirIntegration(t *testing.T) {
 						{Function: "avg", Field: "memory_usage"},
 					},
 				},
-				expected: "by(instance)",
+				expected: "by (instance)",
 			},
 			{
 				name: "with percentile",

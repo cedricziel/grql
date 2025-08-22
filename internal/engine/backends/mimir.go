@@ -115,6 +115,10 @@ func (m *MimirAdapter) translateToPromQL(query QueryRequest) string {
 				promQL.WriteString(fmt.Sprintf("max(%s)", query.MetricName))
 			case "rate":
 				promQL.WriteString(fmt.Sprintf("rate(%s[5m])", query.MetricName))
+			case "p95":
+				promQL.WriteString(fmt.Sprintf("quantile(0.95, %s)", query.MetricName))
+			case "p99":
+				promQL.WriteString(fmt.Sprintf("quantile(0.99, %s)", query.MetricName))
 			default:
 				promQL.WriteString(query.MetricName)
 			}

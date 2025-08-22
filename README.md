@@ -1,5 +1,9 @@
 # GRQL - gRPC Query Language Frontend
 
+[![CI](https://github.com/cedricziel/grql/actions/workflows/ci.yml/badge.svg)](https://github.com/cedricziel/grql/actions/workflows/ci.yml)
+[![Go Report Card](https://goreportcard.com/badge/github.com/cedricziel/grql)](https://goreportcard.com/report/github.com/cedricziel/grql)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
+
 A unified query engine that provides a SQL-like query interface (similar to NRQL) over gRPC, federating queries across Grafana Mimir (metrics), Loki (logs), and Tempo (traces) backends.
 
 ## Features

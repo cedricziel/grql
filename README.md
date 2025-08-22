@@ -1,14 +1,16 @@
 # GRQL - gRPC Query Language Frontend
 
-A gRPC-based query frontend service for SQL-like query language. Users can submit queries via gRPC and receive results.
+A unified query engine that provides a SQL-like query interface (similar to NRQL) over gRPC, federating queries across Grafana Mimir (metrics), Loki (logs), and Tempo (traces) backends.
 
 ## Features
 
-- gRPC-based query service
-- Support for SQL-like query syntax
-- Streaming support for large result sets
-- Query parameters support
-- Query metadata (execution time, affected rows, column info)
+- **Unified Query Language**: NRQL-like SQL dialect for querying metrics, logs, and traces
+- **Multi-Backend Support**: Seamlessly query Grafana Mimir, Loki, and Tempo
+- **Query Federation**: Join and correlate data across different observability backends
+- **Query Optimization**: Cost-based optimizer with predicate pushdown
+- **Streaming Support**: Efficient streaming for large result sets
+- **Result Caching**: Built-in query result caching for improved performance
+- **gRPC API**: High-performance gRPC interface with reflection support
 
 ## Project Structure
 
@@ -17,7 +19,16 @@ grql/
 ├── cmd/
 │   └── server/         # Server entry point
 ├── internal/
-│   └── server/         # Server implementation
+│   ├── server/         # gRPC server implementation
+│   └── engine/         # Query engine components
+│       ├── parser.go   # SQL parser with NRQL extensions
+│       ├── planner.go  # Query planner and optimizer
+│       ├── executor.go # Query executor with caching
+│       ├── plan.go     # Query plan data structures
+│       └── backends/   # Backend adapters
+│           ├── mimir.go  # Mimir/PromQL adapter
+│           ├── loki.go   # Loki/LogQL adapter
+│           └── tempo.go # Tempo/TraceQL adapter
 ├── proto/              # Protocol buffer definitions
 ├── Makefile           # Build commands
 └── go.mod             # Go module definition
@@ -50,6 +61,17 @@ make build
 go build -o bin/grql-server cmd/server/main.go
 ```
 
+## Configuration
+
+Set environment variables to configure backend connections:
+
+```bash
+export MIMIR_URL=http://localhost:9009     # Grafana Mimir endpoint
+export LOKI_URL=http://localhost:3100      # Grafana Loki endpoint  
+export TEMPO_URL=http://localhost:3200     # Grafana Tempo endpoint
+export TENANT_ID=my-tenant                 # Optional multi-tenant ID
+```
+
 ## Running
 
 ```bash
@@ -78,6 +100,28 @@ Execute a query and receive results as a stream.
 rpc StreamQuery(QueryRequest) returns (stream QueryResult);
 ```
 
+## Query Examples
+
+The query engine supports NRQL-like SQL syntax for querying across backends:
+
+```sql
+-- Query metrics from Mimir
+SELECT avg(cpu_usage), max(memory_usage) FROM metrics 
+WHERE service="api" GROUP BY instance SINCE 1 hour ago
+
+-- Query logs from Loki
+SELECT count(*) FROM logs 
+WHERE level="error" AND service="frontend" SINCE 24 hours ago
+
+-- Query traces from Tempo
+SELECT avg(duration), count(*) FROM traces 
+WHERE service_name="checkout" AND duration > 100 GROUP BY operation_name
+
+-- Correlate logs and metrics (federation)
+SELECT l.message, m.cpu_usage FROM logs l, metrics m
+WHERE l.service = m.service AND l.level = "error"
+```
+
 ## Testing with grpcurl
 
 The server has reflection enabled for easy testing:
@@ -89,13 +133,17 @@ grpcurl -plaintext localhost:50051 list
 # Describe service
 grpcurl -plaintext localhost:50051 describe grql.QueryService
 
-# Execute a query
-grpcurl -plaintext -d '{"query": "SELECT * FROM users", "limit": 10}' \
-  localhost:50051 grql.QueryService/ExecuteQuery
+# Execute a metrics query
+grpcurl -plaintext localhost:50051 grql.QueryService/ExecuteQuery \
+  -d '{"query": "SELECT avg(cpu_usage) FROM metrics WHERE service=\"api\""}'
 
-# Stream query results
-grpcurl -plaintext -d '{"query": "SELECT * FROM events"}' \
-  localhost:50051 grql.QueryService/StreamQuery
+# Stream logs
+grpcurl -plaintext localhost:50051 grql.QueryService/StreamQuery \
+  -d '{"query": "SELECT * FROM logs WHERE level=\"error\" LIMIT 100"}'
+
+# Query with parameters
+grpcurl -plaintext localhost:50051 grql.QueryService/ExecuteQuery \
+  -d '{"query": "SELECT * FROM metrics", "parameters": {"since": "1h", "limit": "10"}}'
 ```
 
 ## Development
@@ -103,10 +151,26 @@ grpcurl -plaintext -d '{"query": "SELECT * FROM events"}' \
 ```bash
 # Run tests
 make test
+# Or directly with go test
+go test ./...
 
 # Clean generated files
 make clean
+
+# Build directly (if protoc has issues)
+go build -o bin/grql-server cmd/server/main.go
 ```
+
+## Architecture Notes
+
+The query engine compiles and includes:
+- SQL parser with NRQL-like extensions using Vitess sqlparser
+- Query planner with cost-based optimization
+- Backend adapters for Mimir (PromQL), Loki (LogQL), and Tempo (TraceQL)
+- Result caching with LRU eviction
+- Streaming support for large result sets
+
+Note: Some tests may fail for advanced NRQL syntax features that are still being implemented.
 
 ## License
 

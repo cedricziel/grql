@@ -7,7 +7,7 @@ on:
     branches: [ main ]
 
 env:
-  GO_VERSION: '1.23'
+  GO_VERSION: '1.25'
 
 jobs:
   lint:
@@ -15,12 +15,12 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v5
-      
+
       - uses: actions/setup-go@v5
         with:
           go-version: ${{ env.GO_VERSION }}
           cache: true
-      
+
       - name: golangci-lint
         uses: golangci/golangci-lint-action@v8
         with:
@@ -33,18 +33,18 @@ jobs:
     strategy:
       matrix:
         os: [ubuntu-latest, macos-latest]
-        go: ['1.21', '1.22', '1.23']
+        go: ['1.23', '1.24', '1.25']
     steps:
       - uses: actions/checkout@v5
-      
+
       - uses: actions/setup-go@v5
         with:
           go-version: ${{ matrix.go }}
           cache: true
-      
+
       - name: Run tests
         run: make test
-      
+
       - name: Upload coverage
         if: matrix.os == 'ubuntu-latest' && matrix.go == '1.23'
         uses: codecov/codecov-action@v5
@@ -62,12 +62,12 @@ jobs:
         options: --privileged
     steps:
       - uses: actions/checkout@v5
-      
+
       - uses: actions/setup-go@v5
         with:
           go-version: ${{ env.GO_VERSION }}
           cache: true
-      
+
       - name: Run integration tests
         run: make test-integration
         timeout-minutes: 15
@@ -91,19 +91,19 @@ jobs:
             goarch: amd64
     steps:
       - uses: actions/checkout@v5
-      
+
       - uses: actions/setup-go@v5
         with:
           go-version: ${{ env.GO_VERSION }}
           cache: true
-      
+
       - name: Build binary
         env:
           GOOS: ${{ matrix.goos }}
           GOARCH: ${{ matrix.goarch }}
         run: |
           go build -v -o grql-${{ matrix.goos }}-${{ matrix.goarch }} ./cmd/server
-      
+
       - name: Upload artifact
         uses: actions/upload-artifact@v4
         with:
@@ -115,25 +115,25 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v5
-      
+
       - uses: actions/setup-go@v5
         with:
           go-version: ${{ env.GO_VERSION }}
           cache: true
-      
+
       - name: Install protoc
         uses: arduino/setup-protoc@v3
         with:
           version: '25.x'
-      
+
       - name: Install protoc-gen-go
         run: |
           go install google.golang.org/protobuf/cmd/protoc-gen-go@latest
           go install google.golang.org/grpc/cmd/protoc-gen-go-grpc@latest
-      
+
       - name: Generate proto
         run: make proto
-      
+
       - name: Check for changes
         run: |
           git diff --exit-code || (echo "Protobuf files are out of date. Please run 'make proto' and commit the changes." && exit 1)

@@ -291,11 +291,11 @@ type TempoResponse struct {
 
 // TraceResult represents a single trace result
 type TraceResult struct {
-	StartTimeUnixNano int64        `json:"startTimeUnixNano"`
 	Spans             []SpanResult `json:"spans,omitempty"`
 	TraceID           string       `json:"traceID"`
 	RootServiceName   string       `json:"rootServiceName"`
 	RootTraceName     string       `json:"rootTraceName"`
+	StartTimeUnixNano int64        `json:"startTimeUnixNano"`
 	DurationMs        int          `json:"durationMs"`
 }
 

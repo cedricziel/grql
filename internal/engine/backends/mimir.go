@@ -33,10 +33,10 @@ type Aggregate struct {
 
 // QueryRequest represents a query request to a backend
 type QueryRequest struct {
+	TimeRange  TimeRange
 	Filters    []Filter
 	GroupBy    []string
 	Aggregates []Aggregate
-	TimeRange  TimeRange
 	MetricName string
 	Limit      int
 }

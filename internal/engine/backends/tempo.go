@@ -291,12 +291,12 @@ type TempoResponse struct {
 
 // TraceResult represents a single trace result
 type TraceResult struct {
+	Spans             []SpanResult `json:"spans,omitempty"`
+	StartTimeUnixNano int64        `json:"startTimeUnixNano"`
 	TraceID           string       `json:"traceID"`
 	RootServiceName   string       `json:"rootServiceName"`
 	RootTraceName     string       `json:"rootTraceName"`
-	StartTimeUnixNano int64        `json:"startTimeUnixNano"`
 	DurationMs        int          `json:"durationMs"`
-	Spans             []SpanResult `json:"spans,omitempty"`
 }
 
 // SpanResult represents a single span result
@@ -359,7 +359,7 @@ func (t *TempoAdapter) Stream(ctx context.Context, query QueryRequest, ch chan<-
 
 	lastQuery := query.TimeRange.Since
 
-	for {
+	for lastQuery.Before(query.TimeRange.Until) || lastQuery.Equal(query.TimeRange.Until) {
 		select {
 		case <-ctx.Done():
 			return ctx.Err()
@@ -385,11 +385,6 @@ func (t *TempoAdapter) Stream(ctx context.Context, query QueryRequest, ch chan<-
 			}
 
 			lastQuery = time.Now()
-
-			// Stop if we've reached the end time
-			if lastQuery.After(query.TimeRange.Until) {
-				break
-			}
 		}
 	}
 

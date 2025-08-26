@@ -138,7 +138,8 @@ func (p *Planner) extractColumns(selectExprs []sqlparser.SelectExpr) []string {
 func (p *Planner) extractFilters(expr sqlparser.Expr) []Filter {
 	filters := make([]Filter, 0)
 
-	_ = sqlparser.Walk(func(node sqlparser.SQLNode) (kontinue bool, err error) {
+	//nolint:errcheck // Walk errors are not recoverable in this context
+	sqlparser.Walk(func(node sqlparser.SQLNode) (kontinue bool, err error) {
 		switch n := node.(type) {
 		case *sqlparser.ComparisonExpr:
 			filter := p.extractComparisonFilter(n)
@@ -236,7 +237,8 @@ func (p *Planner) hasAggregates(selectExprs []sqlparser.SelectExpr) bool {
 	hasAgg := false
 
 	for _, expr := range selectExprs {
-		_ = sqlparser.Walk(func(node sqlparser.SQLNode) (kontinue bool, err error) {
+		//nolint:errcheck // Walk errors are not recoverable in this context
+		sqlparser.Walk(func(node sqlparser.SQLNode) (kontinue bool, err error) {
 			switch node.(type) {
 			case *sqlparser.FuncExpr, *sqlparser.CountStar, *sqlparser.Count,
 				*sqlparser.Sum, *sqlparser.Avg, *sqlparser.Max, *sqlparser.Min:

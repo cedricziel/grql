@@ -247,8 +247,8 @@ type resultOrError struct {
 
 // FilteredResultSet implements ResultSet with filtering
 type FilteredResultSet struct {
-	source  ResultSet
 	filters []Filter
+	source  ResultSet
 	current Row
 }
 
@@ -303,12 +303,12 @@ func (f *FilteredResultSet) matchesFilter(row Row, filter Filter) bool {
 
 // AggregatedResultSet implements ResultSet with aggregation
 type AggregatedResultSet struct {
-	source     ResultSet
 	groupBy    []string
 	aggregates []Aggregate
+	results    []Row
+	source     ResultSet
 	current    Row
 	index      int
-	results    []Row
 }
 
 func (a *AggregatedResultSet) Next() bool {
@@ -354,9 +354,9 @@ func (a *AggregatedResultSet) computeAggregates() {
 type JoinedResultSet struct {
 	left      ResultSet
 	right     ResultSet
-	joinType  JoinType
 	condition JoinCondition
 	current   Row
+	joinType  JoinType
 }
 
 func (j *JoinedResultSet) Next() bool {

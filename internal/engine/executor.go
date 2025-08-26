@@ -160,7 +160,8 @@ func (e *Executor) applyParameters(query *Query, params map[string]string) {
 				query.TimeRange.Until = time.Now().Add(-duration)
 			}
 		case "limit":
-			_, _ = fmt.Sscanf(value, "%d", &query.Limit) // Ignoring error, using default if invalid
+			//nolint:errcheck // Intentionally ignoring error - using default limit if parsing fails
+			fmt.Sscanf(value, "%d", &query.Limit)
 		}
 	}
 }

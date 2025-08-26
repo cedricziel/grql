@@ -256,15 +256,15 @@ type DataPoint struct {
 
 // PrometheusResponse represents the Prometheus API response format
 type PrometheusResponse struct {
-	Status string `json:"status"`
-	Data   struct {
-		ResultType string `json:"resultType"`
-		Result     []struct {
-			Metric map[string]string `json:"metric"`
+	Data struct {
+		Result []struct {
 			Values [][]interface{}   `json:"values"`
+			Metric map[string]string `json:"metric"`
 		} `json:"result"`
+		ResultType string `json:"resultType"`
 	} `json:"data"`
-	Error string `json:"error,omitempty"`
+	Status string `json:"status"`
+	Error  string `json:"error,omitempty"`
 }
 
 // Stream executes a streaming query against Mimir
@@ -327,10 +327,10 @@ func (m *MimirAdapter) GetCapabilities() Capabilities {
 
 // Capabilities describes what a backend supports
 type Capabilities struct {
+	SupportedFunctions  []string
+	MaxTimeRange        time.Duration
 	SupportsAggregation bool
 	SupportsGroupBy     bool
 	SupportsRate        bool
 	SupportsHistogram   bool
-	MaxTimeRange        time.Duration
-	SupportedFunctions  []string
 }

@@ -21,9 +21,9 @@ const (
 
 // Filter represents a filter condition
 type Filter struct {
+	Value    interface{}
 	Field    string
 	Operator FilterOperator
-	Value    interface{}
 }
 
 // AggregateFunction represents aggregation function types

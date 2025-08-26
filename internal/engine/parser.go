@@ -88,7 +88,8 @@ func (p *Parser) extractSelectInfo(q *Query, stmt *sqlparser.Select) error {
 	// Extract LIMIT
 	if stmt.Limit != nil {
 		if count, ok := stmt.Limit.Rowcount.(*sqlparser.Literal); ok {
-			_, _ = fmt.Sscanf(string(count.Val), "%d", &q.Limit) // Ignoring error, using default if invalid
+			//nolint:errcheck // Intentionally ignoring error - using default limit if parsing fails
+			fmt.Sscanf(string(count.Val), "%d", &q.Limit)
 		}
 	}
 
@@ -133,7 +134,8 @@ func (p *Parser) extractTimeRange(q *Query, expr sqlparser.Expr) {
 	}
 
 	// Walk the expression tree looking for time-related conditions
-	_ = sqlparser.Walk(func(node sqlparser.SQLNode) (kontinue bool, err error) {
+	//nolint:errcheck // Walk errors are not recoverable in this context
+	sqlparser.Walk(func(node sqlparser.SQLNode) (kontinue bool, err error) {
 		if comp, ok := node.(*sqlparser.ComparisonExpr); ok {
 			p.extractTimeComparison(q, comp)
 		}

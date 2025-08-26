@@ -9,8 +9,8 @@ func TestMimirAdapter_TranslateToPromQL(t *testing.T) {
 	adapter := NewMimirAdapter("http://localhost:9009", "")
 
 	tests := []struct {
-		name   string
 		query  QueryRequest
+		name   string
 		wantQL string
 	}{
 		{

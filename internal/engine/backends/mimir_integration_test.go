@@ -184,8 +184,8 @@ func TestMimirIntegration(t *testing.T) {
 	// Test 6: Build PromQL queries
 	t.Run("BuildPromQLQueries", func(t *testing.T) {
 		testCases := []struct {
-			name     string
 			query    QueryRequest
+			name     string
 			expected string // Part of expected PromQL
 		}{
 			{

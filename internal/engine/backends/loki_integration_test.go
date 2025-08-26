@@ -152,8 +152,8 @@ func TestLokiIntegration(t *testing.T) {
 	// Test 5: Build LogQL queries
 	t.Run("BuildLogQLQueries", func(t *testing.T) {
 		testCases := []struct {
-			name     string
 			query    QueryRequest
+			name     string
 			expected string // Part of expected LogQL
 		}{
 			{

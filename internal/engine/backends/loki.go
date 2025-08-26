@@ -298,16 +298,16 @@ func (l *LokiAdapter) convertToQueryResponse(lokiResp LokiResponse) *QueryRespon
 
 // LokiResponse represents the Loki API response format
 type LokiResponse struct {
-	Status string `json:"status"`
-	Data   struct {
-		ResultType string `json:"resultType"`
-		Result     []struct {
+	Data struct {
+		Result []struct {
+			Values [][]interface{}   `json:"values"`
 			Stream map[string]string `json:"stream,omitempty"`
 			Metric map[string]string `json:"metric,omitempty"`
-			Values [][]interface{}   `json:"values"`
 		} `json:"result"`
+		ResultType string `json:"resultType"`
 	} `json:"data"`
-	Error string `json:"error,omitempty"`
+	Status string `json:"status"`
+	Error  string `json:"error,omitempty"`
 }
 
 // Stream executes a streaming query against Loki

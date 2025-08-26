@@ -172,9 +172,9 @@ func TestPlanner_ExtractAggregates(t *testing.T) {
 	planner := NewPlanner()
 
 	tests := []struct {
+		wantFuncs []AggregateFunction
 		query     string
 		wantCount int
-		wantFuncs []AggregateFunction
 	}{
 		{
 			query:     "SELECT count(*) FROM metrics",

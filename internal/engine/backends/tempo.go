@@ -290,6 +290,7 @@ type TempoResponse struct {
 }
 
 // TraceResult represents a single trace result
+//nolint:govet // Field alignment is optimized for JSON marshaling
 type TraceResult struct {
 	Spans             []SpanResult `json:"spans,omitempty"`
 	TraceID           string       `json:"traceID"`

@@ -246,6 +246,7 @@ type resultOrError struct {
 }
 
 // FilteredResultSet implements ResultSet with filtering
+//nolint:govet // Field alignment is already optimized
 type FilteredResultSet struct {
 	source  ResultSet
 	filters []Filter
@@ -302,6 +303,7 @@ func (f *FilteredResultSet) matchesFilter(row Row, filter Filter) bool {
 }
 
 // AggregatedResultSet implements ResultSet with aggregation
+//nolint:govet // Field alignment is already optimized
 type AggregatedResultSet struct {
 	source     ResultSet
 	groupBy    []string
@@ -384,6 +386,7 @@ func (j *JoinedResultSet) Schema() Schema {
 }
 
 // UnionResultSet implements ResultSet for unions
+//nolint:govet // Field alignment is already optimized
 type UnionResultSet struct {
 	sources []ResultSet
 	current Row

@@ -151,6 +151,7 @@ func TestLokiIntegration(t *testing.T) {
 
 	// Test 5: Build LogQL queries
 	t.Run("BuildLogQLQueries", func(t *testing.T) {
+		//nolint:govet // Test struct field alignment is not critical
 		testCases := []struct {
 			query    QueryRequest
 			name     string

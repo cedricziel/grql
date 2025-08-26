@@ -160,6 +160,7 @@ func TestTempoIntegration(t *testing.T) {
 
 	// Test 5: Build TraceQL queries
 	t.Run("BuildTraceQLQueries", func(t *testing.T) {
+		//nolint:govet // Test struct field alignment is not critical
 		testCases := []struct {
 			name     string
 			query    QueryRequest

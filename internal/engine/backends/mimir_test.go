@@ -8,6 +8,7 @@ import (
 func TestMimirAdapter_TranslateToPromQL(t *testing.T) {
 	adapter := NewMimirAdapter("http://localhost:9009", "")
 
+	//nolint:govet // Test struct field alignment is not critical
 	tests := []struct {
 		query  QueryRequest
 		name   string

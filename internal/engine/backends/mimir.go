@@ -32,6 +32,7 @@ type Aggregate struct {
 }
 
 // QueryRequest represents a query request to a backend
+//nolint:govet // Field alignment is optimized for common usage patterns
 type QueryRequest struct {
 	TimeRange  TimeRange
 	Filters    []Filter

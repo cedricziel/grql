@@ -183,6 +183,7 @@ func TestMimirIntegration(t *testing.T) {
 
 	// Test 6: Build PromQL queries
 	t.Run("BuildPromQLQueries", func(t *testing.T) {
+		//nolint:govet // Test struct field alignment is not critical
 		testCases := []struct {
 			query    QueryRequest
 			name     string

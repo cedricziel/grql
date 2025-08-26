@@ -273,7 +273,7 @@ func TestFederationIntegration(t *testing.T) {
 				}
 
 				if physical.Backend == "" {
-					t.Error("Expected backend to be selected")
+					t.Errorf("Expected backend to be selected. DataSource: %s, Query: %s", parsed.DataSource, q)
 				}
 			})
 		}

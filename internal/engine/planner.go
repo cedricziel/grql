@@ -556,12 +556,32 @@ func (p *Planner) CreatePhysicalPlan(logical *LogicalPlan) (*PhysicalPlan, error
 		Parallel: p.shouldParallelize(logical),
 	}
 
-	// Determine primary backend
-	if scanNode, ok := logical.Root.(*ScanNode); ok {
-		physical.Backend = scanNode.Backend
-	}
+	// Determine primary backend by finding the scan node
+	physical.Backend = p.findBackend(logical.Root)
 
 	return physical, nil
+}
+
+// findBackend recursively finds the backend from the plan nodes
+func (p *Planner) findBackend(node PlanNode) Backend {
+	if node == nil {
+		return ""
+	}
+	
+	// Check if this is a scan node
+	if scanNode, ok := node.(*ScanNode); ok {
+		return scanNode.Backend
+	}
+	
+	// Recursively check children
+	children := node.Children()
+	for _, child := range children {
+		if backend := p.findBackend(child); backend != "" {
+			return backend
+		}
+	}
+	
+	return ""
 }
 
 // shouldParallelize determines if query should be parallelized

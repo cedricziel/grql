@@ -46,7 +46,7 @@ jobs:
         run: make test
 
       - name: Upload coverage
-        if: matrix.os == 'ubuntu-latest' && matrix.go == '1.23'
+        if: matrix.os == 'ubuntu-latest' && matrix.go == '1.25'
         uses: codecov/codecov-action@v5
         with:
           files: ./coverage.out

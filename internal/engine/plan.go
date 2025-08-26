@@ -118,9 +118,9 @@ func (f *FilterNode) Cost() int64 {
 
 // AggregateNode represents an aggregation operation
 type AggregateNode struct {
-	Child       PlanNode
-	GroupBy     []string
-	Aggregates  []Aggregate
+	Child      PlanNode
+	GroupBy    []string
+	Aggregates []Aggregate
 }
 
 func (a *AggregateNode) Execute(ctx context.Context) (ResultSet, error) {
@@ -155,27 +155,27 @@ func (j *JoinNode) Execute(ctx context.Context) (ResultSet, error) {
 	// Execute both children in parallel
 	leftCh := make(chan resultOrError)
 	rightCh := make(chan resultOrError)
-	
+
 	go func() {
 		result, err := j.Left.Execute(ctx)
 		leftCh <- resultOrError{result, err}
 	}()
-	
+
 	go func() {
 		result, err := j.Right.Execute(ctx)
 		rightCh <- resultOrError{result, err}
 	}()
-	
+
 	leftRes := <-leftCh
 	rightRes := <-rightCh
-	
+
 	if leftRes.err != nil {
 		return nil, leftRes.err
 	}
 	if rightRes.err != nil {
 		return nil, rightRes.err
 	}
-	
+
 	return &JoinedResultSet{
 		left:      leftRes.result,
 		right:     rightRes.result,
@@ -220,7 +220,6 @@ func (u *UnionNode) Cost() int64 {
 	}
 	return totalCost
 }
-
 
 // JoinType represents the type of join
 type JoinType string
@@ -290,7 +289,7 @@ func (f *FilteredResultSet) matchesFilter(row Row, filter Filter) bool {
 	if !ok {
 		return false
 	}
-	
+
 	// Simplified filter matching - would be more comprehensive in production
 	switch filter.Operator {
 	case FilterOpEqual:

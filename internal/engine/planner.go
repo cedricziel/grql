@@ -48,16 +48,16 @@ func (p *Planner) createSelectPlan(query *Query, stmt *sqlparser.Select) (*Logic
 	if backend == "" {
 		return nil, fmt.Errorf("no backend available for data source: %s", query.DataSource)
 	}
-	
+
 	scanNode := &ScanNode{
 		DataSource: query.DataSource,
 		Backend:    backend,
 		TimeRange:  query.TimeRange,
 		Columns:    p.extractColumns(stmt.SelectExprs.Exprs),
 	}
-	
+
 	var root PlanNode = scanNode
-	
+
 	// Add filters from WHERE clause
 	if stmt.Where != nil {
 		filters := p.extractFilters(stmt.Where.Expr)
@@ -65,7 +65,7 @@ func (p *Planner) createSelectPlan(query *Query, stmt *sqlparser.Select) (*Logic
 			// Push down filters to scan if possible
 			pushDownFilters, remainingFilters := p.pushDownFilters(filters, backend)
 			scanNode.Filters = pushDownFilters
-			
+
 			if len(remainingFilters) > 0 {
 				root = &FilterNode{
 					Child:   root,
@@ -74,7 +74,7 @@ func (p *Planner) createSelectPlan(query *Query, stmt *sqlparser.Select) (*Logic
 			}
 		}
 	}
-	
+
 	// Add aggregations and grouping
 	if stmt.GroupBy != nil || p.hasAggregates(stmt.SelectExprs.Exprs) {
 		aggregates := p.extractAggregates(stmt.SelectExprs.Exprs)
@@ -82,22 +82,22 @@ func (p *Planner) createSelectPlan(query *Query, stmt *sqlparser.Select) (*Logic
 		if stmt.GroupBy != nil {
 			groupBy = p.extractGroupBy(stmt.GroupBy.Exprs)
 		}
-		
+
 		root = &AggregateNode{
 			Child:      root,
 			GroupBy:    groupBy,
 			Aggregates: aggregates,
 		}
 	}
-	
+
 	// Handle JOIN operations
 	if len(stmt.From) > 1 {
 		root = p.createJoinPlan(stmt.From, root)
 	}
-	
+
 	// Handle UNION operations (if present in query)
 	// This would be extended to handle UNION queries
-	
+
 	return &LogicalPlan{Root: root}, nil
 }
 
@@ -118,7 +118,7 @@ func (p *Planner) selectBackend(dataSource DataSource) Backend {
 // extractColumns extracts column names from SELECT expressions
 func (p *Planner) extractColumns(selectExprs []sqlparser.SelectExpr) []string {
 	columns := make([]string, 0)
-	
+
 	for _, expr := range selectExprs {
 		switch e := expr.(type) {
 		case *sqlparser.AliasedExpr:
@@ -130,14 +130,14 @@ func (p *Planner) extractColumns(selectExprs []sqlparser.SelectExpr) []string {
 			return nil
 		}
 	}
-	
+
 	return columns
 }
 
 // extractFilters extracts filter conditions from WHERE clause
 func (p *Planner) extractFilters(expr sqlparser.Expr) []Filter {
 	filters := make([]Filter, 0)
-	
+
 	sqlparser.Walk(func(node sqlparser.SQLNode) (kontinue bool, err error) {
 		switch n := node.(type) {
 		case *sqlparser.ComparisonExpr:
@@ -148,7 +148,7 @@ func (p *Planner) extractFilters(expr sqlparser.Expr) []Filter {
 		}
 		return true, nil
 	}, expr)
-	
+
 	return filters
 }
 
@@ -161,7 +161,7 @@ func (p *Planner) extractComparisonFilter(comp *sqlparser.ComparisonExpr) *Filte
 	} else {
 		return nil
 	}
-	
+
 	// Extract value
 	var value interface{}
 	switch v := comp.Right.(type) {
@@ -173,7 +173,7 @@ func (p *Planner) extractComparisonFilter(comp *sqlparser.ComparisonExpr) *Filte
 	default:
 		return nil
 	}
-	
+
 	// Map operator
 	var operator FilterOperator
 	switch comp.Operator {
@@ -198,7 +198,7 @@ func (p *Planner) extractComparisonFilter(comp *sqlparser.ComparisonExpr) *Filte
 	default:
 		return nil
 	}
-	
+
 	return &Filter{
 		Field:    field,
 		Operator: operator,
@@ -210,7 +210,7 @@ func (p *Planner) extractComparisonFilter(comp *sqlparser.ComparisonExpr) *Filte
 func (p *Planner) pushDownFilters(filters []Filter, backend Backend) (pushDown, remaining []Filter) {
 	pushDown = make([]Filter, 0)
 	remaining = make([]Filter, 0)
-	
+
 	for _, filter := range filters {
 		// Simple heuristic: push down all filters for now
 		// In production, would check backend capabilities
@@ -220,7 +220,7 @@ func (p *Planner) pushDownFilters(filters []Filter, backend Backend) (pushDown, 
 			remaining = append(remaining, filter)
 		}
 	}
-	
+
 	return pushDown, remaining
 }
 
@@ -234,7 +234,7 @@ func (p *Planner) canPushDownFilter(filter Filter, backend Backend) bool {
 // hasAggregates checks if SELECT has aggregate functions
 func (p *Planner) hasAggregates(selectExprs []sqlparser.SelectExpr) bool {
 	hasAgg := false
-	
+
 	for _, expr := range selectExprs {
 		sqlparser.Walk(func(node sqlparser.SQLNode) (kontinue bool, err error) {
 			switch node.(type) {
@@ -246,19 +246,19 @@ func (p *Planner) hasAggregates(selectExprs []sqlparser.SelectExpr) bool {
 			return true, nil
 		}, expr)
 	}
-	
+
 	return hasAgg
 }
 
 // extractAggregates extracts aggregate functions from SELECT
 func (p *Planner) extractAggregates(selectExprs []sqlparser.SelectExpr) []Aggregate {
 	aggregates := make([]Aggregate, 0)
-	
+
 	for _, expr := range selectExprs {
 		if aliased, ok := expr.(*sqlparser.AliasedExpr); ok {
 			var agg *Aggregate
 			alias := aliased.As.String()
-			
+
 			switch e := aliased.Expr.(type) {
 			case *sqlparser.FuncExpr:
 				agg = p.extractAggregate(e, alias)
@@ -325,13 +325,13 @@ func (p *Planner) extractAggregates(selectExprs []sqlparser.SelectExpr) []Aggreg
 					Alias:    alias,
 				}
 			}
-			
+
 			if agg != nil {
 				aggregates = append(aggregates, *agg)
 			}
 		}
 	}
-	
+
 	return aggregates
 }
 
@@ -348,7 +348,7 @@ func (p *Planner) extractExprField(expr sqlparser.Expr) string {
 // extractAggregate extracts a single aggregate function
 func (p *Planner) extractAggregate(funcExpr *sqlparser.FuncExpr, alias string) *Aggregate {
 	funcName := strings.ToLower(funcExpr.Name.String())
-	
+
 	var aggFunc AggregateFunction
 	switch funcName {
 	case "count":
@@ -372,7 +372,7 @@ func (p *Planner) extractAggregate(funcExpr *sqlparser.FuncExpr, alias string) *
 	default:
 		return nil
 	}
-	
+
 	// Extract field from function arguments
 	var field string
 	if funcExpr.Exprs != nil && len(funcExpr.Exprs) > 0 {
@@ -385,11 +385,11 @@ func (p *Planner) extractAggregate(funcExpr *sqlparser.FuncExpr, alias string) *
 			field = "*"
 		}
 	}
-	
+
 	if alias == "" {
 		alias = fmt.Sprintf("%s_%s", funcName, field)
 	}
-	
+
 	return &Aggregate{
 		Function: aggFunc,
 		Field:    field,
@@ -400,13 +400,13 @@ func (p *Planner) extractAggregate(funcExpr *sqlparser.FuncExpr, alias string) *
 // extractGroupBy extracts GROUP BY columns
 func (p *Planner) extractGroupBy(groupBy []sqlparser.Expr) []string {
 	columns := make([]string, 0)
-	
+
 	for _, expr := range groupBy {
 		if colName, ok := expr.(*sqlparser.ColName); ok {
 			columns = append(columns, colName.Name.String())
 		}
 	}
-	
+
 	return columns
 }
 
@@ -416,27 +416,27 @@ func (p *Planner) createJoinPlan(tables sqlparser.TableExprs, leftNode PlanNode)
 	if len(tables) < 2 {
 		return leftNode
 	}
-	
+
 	// For now, create a simple cross join
 	// In production, would analyze join conditions
 	for i := 1; i < len(tables); i++ {
 		rightTable := p.extractTableName(tables[i])
 		rightDataSource := p.mapTableToDataSource(rightTable)
 		rightBackend := p.selectBackend(rightDataSource)
-		
+
 		rightNode := &ScanNode{
 			DataSource: rightDataSource,
 			Backend:    rightBackend,
 			TimeRange:  TimeRange{}, // Would extract from query
 		}
-		
+
 		leftNode = &JoinNode{
 			Left:     leftNode,
 			Right:    rightNode,
 			JoinType: JoinTypeCross,
 		}
 	}
-	
+
 	return leftNode
 }
 
@@ -492,12 +492,12 @@ func (o *Optimizer) Optimize(plan *LogicalPlan) (*LogicalPlan, error) {
 	changed := true
 	iterations := 0
 	maxIterations := 10
-	
+
 	// Apply rules until no more changes or max iterations reached
 	for changed && iterations < maxIterations {
 		changed = false
 		iterations++
-		
+
 		for _, rule := range o.rules {
 			newPlan, applied := rule.Apply(optimized)
 			if applied {
@@ -506,7 +506,7 @@ func (o *Optimizer) Optimize(plan *LogicalPlan) (*LogicalPlan, error) {
 			}
 		}
 	}
-	
+
 	return optimized, nil
 }
 
@@ -548,17 +548,17 @@ func (p *Planner) CreatePhysicalPlan(logical *LogicalPlan) (*PhysicalPlan, error
 	// Convert logical operators to physical operators
 	// Add parallelism hints
 	// Select specific algorithms (hash join vs nested loop, etc.)
-	
+
 	physical := &PhysicalPlan{
 		Root:     logical.Root, // For now, use same nodes
 		Parallel: p.shouldParallelize(logical),
 	}
-	
+
 	// Determine primary backend
 	if scanNode, ok := logical.Root.(*ScanNode); ok {
 		physical.Backend = scanNode.Backend
 	}
-	
+
 	return physical, nil
 }
 

@@ -30,15 +30,15 @@ type Filter struct {
 type AggregateFunction string
 
 const (
-	AggFuncCount   AggregateFunction = "count"
-	AggFuncSum     AggregateFunction = "sum"
-	AggFuncAvg     AggregateFunction = "avg"
-	AggFuncMin     AggregateFunction = "min"
-	AggFuncMax     AggregateFunction = "max"
-	AggFuncStdDev  AggregateFunction = "stddev"
-	AggFuncRate    AggregateFunction = "rate"
-	AggFuncP95     AggregateFunction = "p95"
-	AggFuncP99     AggregateFunction = "p99"
+	AggFuncCount  AggregateFunction = "count"
+	AggFuncSum    AggregateFunction = "sum"
+	AggFuncAvg    AggregateFunction = "avg"
+	AggFuncMin    AggregateFunction = "min"
+	AggFuncMax    AggregateFunction = "max"
+	AggFuncStdDev AggregateFunction = "stddev"
+	AggFuncRate   AggregateFunction = "rate"
+	AggFuncP95    AggregateFunction = "p95"
+	AggFuncP99    AggregateFunction = "p99"
 )
 
 // Aggregate represents an aggregation function

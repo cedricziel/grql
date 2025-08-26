@@ -84,20 +84,20 @@ func TestLokiIntegration(t *testing.T) {
 	t.Run("SendTestLogs", func(t *testing.T) {
 		// Push some test logs to Loki
 		pushURL := lokiURL + "/loki/api/v1/push"
-		
+
 		// Create log entries
 		logPayload := createLokiPushPayload()
-		
+
 		resp, err := http.Post(pushURL, "application/json", logPayload)
 		if err != nil {
 			t.Fatalf("Failed to push logs to Loki: %v", err)
 		}
 		defer resp.Body.Close()
-		
+
 		if resp.StatusCode != http.StatusNoContent && resp.StatusCode != http.StatusOK {
 			t.Errorf("Expected status 204 or 200, got %d", resp.StatusCode)
 		}
-		
+
 		// Wait for logs to be indexed
 		time.Sleep(2 * time.Second)
 	})
@@ -127,23 +127,23 @@ func TestLokiIntegration(t *testing.T) {
 	// Test 4: Test capabilities
 	t.Run("TestCapabilities", func(t *testing.T) {
 		caps := adapter.GetCapabilities()
-		
+
 		if !caps.SupportsAggregation {
 			t.Error("Loki should support aggregation")
 		}
-		
+
 		if !caps.SupportsGroupBy {
 			t.Error("Loki should support group by")
 		}
-		
+
 		if !caps.SupportsRate {
 			t.Error("Loki should support rate functions")
 		}
-		
+
 		if caps.SupportsHistogram {
 			t.Error("Loki should not support histograms")
 		}
-		
+
 		if caps.MaxTimeRange == 0 {
 			t.Error("MaxTimeRange should be set")
 		}

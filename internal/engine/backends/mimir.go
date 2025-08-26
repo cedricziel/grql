@@ -60,37 +60,37 @@ func NewMimirAdapter(baseURL string, tenantID string) *MimirAdapter {
 // ExecuteQuery executes a query against Mimir
 func (m *MimirAdapter) ExecuteQuery(ctx context.Context, query QueryRequest) (*QueryResponse, error) {
 	promQL := m.translateToPromQL(query)
-	
+
 	// Build the query URL
 	queryURL := fmt.Sprintf("%s/api/v1/query_range", m.baseURL)
-	
+
 	params := url.Values{}
 	params.Set("query", promQL)
 	params.Set("start", fmt.Sprintf("%d", query.TimeRange.Since.Unix()))
 	params.Set("end", fmt.Sprintf("%d", query.TimeRange.Until.Unix()))
 	params.Set("step", m.calculateStep(query.TimeRange))
-	
+
 	req, err := http.NewRequestWithContext(ctx, "GET", queryURL+"?"+params.Encode(), nil)
 	if err != nil {
 		return nil, fmt.Errorf("failed to create request: %w", err)
 	}
-	
+
 	// Add tenant header if configured
 	if m.tenantID != "" {
 		req.Header.Set("X-Scope-OrgID", m.tenantID)
 	}
-	
+
 	resp, err := m.httpClient.Do(req)
 	if err != nil {
 		return nil, fmt.Errorf("failed to execute query: %w", err)
 	}
 	defer resp.Body.Close()
-	
+
 	if resp.StatusCode != http.StatusOK {
 		body, _ := io.ReadAll(resp.Body)
 		return nil, fmt.Errorf("query failed with status %d: %s", resp.StatusCode, string(body))
 	}
-	
+
 	return m.parseResponse(resp.Body)
 }
 
@@ -98,7 +98,7 @@ func (m *MimirAdapter) ExecuteQuery(ctx context.Context, query QueryRequest) (*Q
 func (m *MimirAdapter) translateToPromQL(query QueryRequest) string {
 	// This is a simplified translation - would be more sophisticated in production
 	var promQL strings.Builder
-	
+
 	// Handle aggregations
 	if len(query.Aggregates) > 0 {
 		for _, agg := range query.Aggregates {
@@ -122,19 +122,19 @@ func (m *MimirAdapter) translateToPromQL(query QueryRequest) string {
 			default:
 				promQL.WriteString(query.MetricName)
 			}
-			
+
 			// Add grouping
 			if len(query.GroupBy) > 0 {
 				promQL.WriteString(fmt.Sprintf(" by (%s)", strings.Join(query.GroupBy, ", ")))
 			}
-			
+
 			break // For now, handle only first aggregate
 		}
 	} else {
 		// No aggregation, just the metric
 		promQL.WriteString(query.MetricName)
 	}
-	
+
 	// Add label filters
 	if len(query.Filters) > 0 {
 		promQL.WriteString("{")
@@ -146,7 +146,7 @@ func (m *MimirAdapter) translateToPromQL(query QueryRequest) string {
 		promQL.WriteString(strings.Join(filters, ", "))
 		promQL.WriteString("}")
 	}
-	
+
 	return promQL.String()
 }
 
@@ -167,7 +167,7 @@ func (m *MimirAdapter) translateOperator(op string) string {
 // calculateStep determines the query step based on time range
 func (m *MimirAdapter) calculateStep(timeRange TimeRange) string {
 	duration := timeRange.Until.Sub(timeRange.Since)
-	
+
 	// Auto-calculate step based on duration
 	switch {
 	case duration <= 1*time.Hour:
@@ -189,11 +189,11 @@ func (m *MimirAdapter) parseResponse(body io.Reader) (*QueryResponse, error) {
 	if err := json.NewDecoder(body).Decode(&promResp); err != nil {
 		return nil, fmt.Errorf("failed to decode response: %w", err)
 	}
-	
+
 	if promResp.Status != "success" {
 		return nil, fmt.Errorf("query failed: %s", promResp.Error)
 	}
-	
+
 	return m.convertToQueryResponse(promResp), nil
 }
 
@@ -202,30 +202,29 @@ func (m *MimirAdapter) convertToQueryResponse(promResp PrometheusResponse) *Quer
 	response := &QueryResponse{
 		Results: make([]Result, 0),
 	}
-	
+
 	for _, result := range promResp.Data.Result {
 		// Convert each metric result
 		r := Result{
 			Labels: result.Metric,
 			Values: make([]DataPoint, 0, len(result.Values)),
 		}
-		
+
 		for _, value := range result.Values {
 			timestamp := int64(value[0].(float64))
 			val := value[1].(string)
-			
+
 			r.Values = append(r.Values, DataPoint{
 				Timestamp: time.Unix(timestamp, 0),
 				Value:     val,
 			})
 		}
-		
+
 		response.Results = append(response.Results, r)
 	}
-	
+
 	return response
 }
-
 
 // QueryResponse represents a response from a backend
 type QueryResponse struct {
@@ -263,24 +262,24 @@ func (m *MimirAdapter) Stream(ctx context.Context, query QueryRequest, ch chan<-
 	// For streaming, we can break the time range into smaller chunks
 	chunkDuration := 1 * time.Hour
 	current := query.TimeRange.Since
-	
+
 	for current.Before(query.TimeRange.Until) {
 		end := current.Add(chunkDuration)
 		if end.After(query.TimeRange.Until) {
 			end = query.TimeRange.Until
 		}
-		
+
 		chunkQuery := query
 		chunkQuery.TimeRange = TimeRange{
 			Since: current,
 			Until: end,
 		}
-		
+
 		resp, err := m.ExecuteQuery(ctx, chunkQuery)
 		if err != nil {
 			return err
 		}
-		
+
 		for _, result := range resp.Results {
 			select {
 			case ch <- result:
@@ -288,10 +287,10 @@ func (m *MimirAdapter) Stream(ctx context.Context, query QueryRequest, ch chan<-
 				return ctx.Err()
 			}
 		}
-		
+
 		current = end
 	}
-	
+
 	return nil
 }
 

@@ -31,12 +31,12 @@ func TestMimirIntegration(t *testing.T) {
 		Cmd:          []string{"-target=all", "-server.http-listen-port=9009", "-server.grpc-listen-port=9095"},
 		Env: map[string]string{
 			// Use filesystem storage for simplicity in tests
-			"MIMIR_STORAGE_BACKEND": "filesystem",
-			"MIMIR_STORAGE_FILESYSTEM_DIR": "/tmp/mimir-blocks",
-			"MIMIR_COMPACTOR_DATA_DIR": "/tmp/mimir-compactor",
+			"MIMIR_STORAGE_BACKEND":                  "filesystem",
+			"MIMIR_STORAGE_FILESYSTEM_DIR":           "/tmp/mimir-blocks",
+			"MIMIR_COMPACTOR_DATA_DIR":               "/tmp/mimir-compactor",
 			"MIMIR_INGESTER_RING_REPLICATION_FACTOR": "1",
-			"MIMIR_RULER_EVALUATION_INTERVAL": "10s",
-			"MIMIR_RULER_POLL_INTERVAL": "10s",
+			"MIMIR_RULER_EVALUATION_INTERVAL":        "10s",
+			"MIMIR_RULER_POLL_INTERVAL":              "10s",
 		},
 		WaitingFor: wait.ForAll(
 			wait.ForListeningPort("9009/tcp"),
@@ -96,19 +96,19 @@ func TestMimirIntegration(t *testing.T) {
 	t.Run("SendTestMetrics", func(t *testing.T) {
 		// Push some test metrics using Prometheus remote write format
 		pushURL := mimirURL + "/api/v1/push"
-		
+
 		// Create Prometheus remote write payload
 		metricsPayload := createPrometheusRemoteWritePayload()
-		
+
 		req, err := http.NewRequest("POST", pushURL, bytes.NewReader(metricsPayload))
 		if err != nil {
 			t.Fatalf("Failed to create request: %v", err)
 		}
-		
+
 		req.Header.Set("Content-Type", "application/x-protobuf")
 		req.Header.Set("Content-Encoding", "snappy")
 		req.Header.Set("X-Prometheus-Remote-Write-Version", "0.1.0")
-		
+
 		client := &http.Client{}
 		resp, err := client.Do(req)
 		if err != nil {
@@ -159,23 +159,23 @@ func TestMimirIntegration(t *testing.T) {
 	// Test 5: Test capabilities
 	t.Run("TestCapabilities", func(t *testing.T) {
 		caps := adapter.GetCapabilities()
-		
+
 		if !caps.SupportsAggregation {
 			t.Error("Mimir should support aggregation")
 		}
-		
+
 		if !caps.SupportsGroupBy {
 			t.Error("Mimir should support group by")
 		}
-		
+
 		if !caps.SupportsRate {
 			t.Error("Mimir should support rate functions")
 		}
-		
+
 		if !caps.SupportsHistogram {
 			t.Error("Mimir should support histograms")
 		}
-		
+
 		if caps.MaxTimeRange == 0 {
 			t.Error("MaxTimeRange should be set")
 		}

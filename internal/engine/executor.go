@@ -35,7 +35,7 @@ func NewExecutor(config ExecutorConfig) *Executor {
 		backends:  make(map[Backend]BackendClient),
 		cache:     NewQueryCache(config.CacheSize),
 	}
-	
+
 	// Register backends
 	if config.MimirURL != "" {
 		exec.backends[BackendMimir] = backends.NewMimirAdapter(config.MimirURL, config.TenantID)
@@ -46,7 +46,7 @@ func NewExecutor(config ExecutorConfig) *Executor {
 	if config.TempoURL != "" {
 		exec.backends[BackendTempo] = backends.NewTempoAdapter(config.TempoURL, config.TenantID)
 	}
-	
+
 	return exec
 }
 
@@ -62,53 +62,53 @@ type ExecutorConfig struct {
 // ExecuteQuery executes a SQL query and returns results
 func (e *Executor) ExecuteQuery(ctx context.Context, sqlQuery string, params map[string]string) (*pb.QueryResponse, error) {
 	startTime := time.Now()
-	
+
 	// Check cache first
 	cacheKey := e.cache.GenerateKey(sqlQuery, params)
 	if cached := e.cache.Get(cacheKey); cached != nil {
 		return cached, nil
 	}
-	
+
 	// Parse query
 	query, err := e.parser.ParseNRQL(sqlQuery)
 	if err != nil {
 		return nil, fmt.Errorf("failed to parse query: %w", err)
 	}
-	
+
 	// Apply parameters
 	e.applyParameters(query, params)
-	
+
 	// Create logical plan
 	logicalPlan, err := e.planner.CreateLogicalPlan(query)
 	if err != nil {
 		return nil, fmt.Errorf("failed to create logical plan: %w", err)
 	}
-	
+
 	// Optimize plan
 	optimizedPlan, err := e.optimizer.Optimize(logicalPlan)
 	if err != nil {
 		return nil, fmt.Errorf("failed to optimize plan: %w", err)
 	}
-	
+
 	// Create physical plan
 	physicalPlan, err := e.planner.CreatePhysicalPlan(optimizedPlan)
 	if err != nil {
 		return nil, fmt.Errorf("failed to create physical plan: %w", err)
 	}
-	
+
 	// Execute plan
 	resultSet, err := e.executePlan(ctx, physicalPlan)
 	if err != nil {
 		return nil, fmt.Errorf("failed to execute plan: %w", err)
 	}
 	defer resultSet.Close()
-	
+
 	// Convert to protobuf response
 	response := e.convertToProtoResponse(resultSet, time.Since(startTime))
-	
+
 	// Cache the result
 	e.cache.Set(cacheKey, response)
-	
+
 	return response, nil
 }
 
@@ -119,28 +119,28 @@ func (e *Executor) StreamQuery(ctx context.Context, sqlQuery string, params map[
 	if err != nil {
 		return fmt.Errorf("failed to parse query: %w", err)
 	}
-	
+
 	// Apply parameters
 	e.applyParameters(query, params)
-	
+
 	// Create logical plan
 	logicalPlan, err := e.planner.CreateLogicalPlan(query)
 	if err != nil {
 		return fmt.Errorf("failed to create logical plan: %w", err)
 	}
-	
+
 	// Optimize plan
 	optimizedPlan, err := e.optimizer.Optimize(logicalPlan)
 	if err != nil {
 		return fmt.Errorf("failed to optimize plan: %w", err)
 	}
-	
+
 	// Create physical plan
 	physicalPlan, err := e.planner.CreatePhysicalPlan(optimizedPlan)
 	if err != nil {
 		return fmt.Errorf("failed to create physical plan: %w", err)
 	}
-	
+
 	// Execute plan with streaming
 	return e.executePlanStreaming(ctx, physicalPlan, stream)
 }
@@ -190,17 +190,17 @@ func (e *Executor) executeScan(ctx context.Context, node *ScanNode) (ResultSet, 
 	if !ok {
 		return nil, fmt.Errorf("backend not configured: %s", node.Backend)
 	}
-	
+
 	// Convert to backend query request
 	request := backends.QueryRequest{
 		TimeRange: backends.TimeRange{
 			Since: node.TimeRange.Since,
 			Until: node.TimeRange.Until,
 		},
-		Filters:   convertFilters(node.Filters),
-		Limit:     1000, // Default limit
+		Filters: convertFilters(node.Filters),
+		Limit:   1000, // Default limit
 	}
-	
+
 	// Determine metric/log/trace name based on data source
 	switch node.DataSource {
 	case DataSourceMetrics:
@@ -211,13 +211,13 @@ func (e *Executor) executeScan(ctx context.Context, node *ScanNode) (ResultSet, 
 	case DataSourceTraces:
 		// Traces use filters directly
 	}
-	
+
 	// Execute query
 	response, err := backend.ExecuteQuery(ctx, request)
 	if err != nil {
 		return nil, err
 	}
-	
+
 	// Convert to ResultSet
 	return e.convertToResultSet(response), nil
 }
@@ -267,23 +267,23 @@ func (b *BackendResultSet) Next() bool {
 	if b.index >= len(b.response.Results) {
 		return false
 	}
-	
+
 	result := b.response.Results[b.index]
 	b.current = Row{
 		Values: make(map[string]interface{}),
 	}
-	
+
 	// Add labels as columns
 	for k, v := range result.Labels {
 		b.current.Values[k] = v
 	}
-	
+
 	// Add values
 	if len(result.Values) > 0 {
 		b.current.Values["timestamp"] = result.Values[0].Timestamp
 		b.current.Values["value"] = result.Values[0].Value
 	}
-	
+
 	return true
 }
 
@@ -300,9 +300,9 @@ func (b *BackendResultSet) Schema() Schema {
 	if len(b.response.Results) == 0 {
 		return Schema{}
 	}
-	
+
 	columns := make([]Column, 0)
-	
+
 	// Add label columns
 	for label := range b.response.Results[0].Labels {
 		columns = append(columns, Column{
@@ -310,13 +310,13 @@ func (b *BackendResultSet) Schema() Schema {
 			Type: DataTypeString,
 		})
 	}
-	
+
 	// Add value columns
-	columns = append(columns, 
+	columns = append(columns,
 		Column{Name: "timestamp", Type: DataTypeTimestamp},
 		Column{Name: "value", Type: DataTypeString},
 	)
-	
+
 	return Schema{Columns: columns}
 }
 
@@ -328,11 +328,11 @@ func (e *Executor) executePlanStreaming(ctx context.Context, plan *PhysicalPlan,
 		if !ok {
 			return fmt.Errorf("backend not configured: %s", scanNode.Backend)
 		}
-		
+
 		// Create result channel
 		resultCh := make(chan backends.Result, 100)
 		errCh := make(chan error, 1)
-		
+
 		// Start streaming from backend
 		go func() {
 			request := backends.QueryRequest{
@@ -340,15 +340,15 @@ func (e *Executor) executePlanStreaming(ctx context.Context, plan *PhysicalPlan,
 					Since: scanNode.TimeRange.Since,
 					Until: scanNode.TimeRange.Until,
 				},
-				Filters:   convertFilters(scanNode.Filters),
+				Filters: convertFilters(scanNode.Filters),
 			}
-			
+
 			if err := backend.Stream(ctx, request, resultCh); err != nil {
 				errCh <- err
 			}
 			close(resultCh)
 		}()
-		
+
 		// Stream results to client
 		for {
 			select {
@@ -356,29 +356,29 @@ func (e *Executor) executePlanStreaming(ctx context.Context, plan *PhysicalPlan,
 				if !ok {
 					return nil
 				}
-				
+
 				// Convert and send result
 				protoResult := e.convertResultToProto(result)
 				if err := stream.Send(protoResult); err != nil {
 					return err
 				}
-				
+
 			case err := <-errCh:
 				return err
-				
+
 			case <-ctx.Done():
 				return ctx.Err()
 			}
 		}
 	}
-	
+
 	// For non-scan nodes, execute normally and stream results
 	resultSet, err := e.executePlan(ctx, plan)
 	if err != nil {
 		return err
 	}
 	defer resultSet.Close()
-	
+
 	// Stream all results
 	for resultSet.Next() {
 		row := resultSet.Current()
@@ -387,7 +387,7 @@ func (e *Executor) executePlanStreaming(ctx context.Context, plan *PhysicalPlan,
 			return err
 		}
 	}
-	
+
 	return nil
 }
 
@@ -395,14 +395,14 @@ func (e *Executor) executePlanStreaming(ctx context.Context, plan *PhysicalPlan,
 func (e *Executor) convertToProtoResponse(resultSet ResultSet, executionTime time.Duration) *pb.QueryResponse {
 	results := make([]*pb.QueryResult, 0)
 	schema := resultSet.Schema()
-	
+
 	// Collect all results
 	for resultSet.Next() {
 		row := resultSet.Current()
 		protoResult := e.convertRowToProto(row)
 		results = append(results, protoResult)
 	}
-	
+
 	// Build column info
 	columnInfo := make([]*pb.ColumnInfo, 0, len(schema.Columns))
 	for _, col := range schema.Columns {
@@ -411,7 +411,7 @@ func (e *Executor) convertToProtoResponse(resultSet ResultSet, executionTime tim
 			Type: string(col.Type),
 		})
 	}
-	
+
 	return &pb.QueryResponse{
 		Results: results,
 		Metadata: &pb.QueryMetadata{
@@ -425,14 +425,14 @@ func (e *Executor) convertToProtoResponse(resultSet ResultSet, executionTime tim
 // convertResultToProto converts a backend result to protobuf
 func (e *Executor) convertResultToProto(result backends.Result) *pb.QueryResult {
 	fields := make(map[string]*pb.Value)
-	
+
 	// Add labels
 	for k, v := range result.Labels {
 		fields[k] = &pb.Value{
 			Value: &pb.Value_StringValue{StringValue: v},
 		}
 	}
-	
+
 	// Add first value (for streaming)
 	if len(result.Values) > 0 {
 		fields["timestamp"] = &pb.Value{
@@ -442,18 +442,18 @@ func (e *Executor) convertResultToProto(result backends.Result) *pb.QueryResult 
 			Value: &pb.Value_StringValue{StringValue: result.Values[0].Value},
 		}
 	}
-	
+
 	return &pb.QueryResult{Fields: fields}
 }
 
 // convertRowToProto converts a row to protobuf
 func (e *Executor) convertRowToProto(row Row) *pb.QueryResult {
 	fields := make(map[string]*pb.Value)
-	
+
 	for key, value := range row.Values {
 		fields[key] = e.convertValueToProto(value)
 	}
-	
+
 	return &pb.QueryResult{Fields: fields}
 }
 
@@ -512,17 +512,17 @@ func (c *QueryCache) GenerateKey(query string, params map[string]string) string 
 func (c *QueryCache) Get(key string) *pb.QueryResponse {
 	c.mu.RLock()
 	defer c.mu.RUnlock()
-	
+
 	entry, ok := c.cache[key]
 	if !ok {
 		return nil
 	}
-	
+
 	// Check if cache entry is still valid (5 minute TTL)
 	if time.Since(entry.timestamp) > 5*time.Minute {
 		return nil
 	}
-	
+
 	return entry.result
 }
 
@@ -530,7 +530,7 @@ func (c *QueryCache) Get(key string) *pb.QueryResponse {
 func (c *QueryCache) Set(key string, result *pb.QueryResponse) {
 	c.mu.Lock()
 	defer c.mu.Unlock()
-	
+
 	// Simple LRU eviction if cache is full
 	if len(c.cache) >= c.size {
 		// Remove oldest entry
@@ -544,7 +544,7 @@ func (c *QueryCache) Set(key string, result *pb.QueryResponse) {
 		}
 		delete(c.cache, oldestKey)
 	}
-	
+
 	c.cache[key] = &cacheEntry{
 		result:    result,
 		timestamp: time.Now(),

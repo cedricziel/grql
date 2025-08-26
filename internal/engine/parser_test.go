@@ -7,7 +7,7 @@ import (
 
 func TestParser_ParseBasicSelect(t *testing.T) {
 	parser := NewParser()
-	
+
 	tests := []struct {
 		name    string
 		query   string
@@ -34,7 +34,7 @@ func TestParser_ParseBasicSelect(t *testing.T) {
 			wantErr: true,
 		},
 	}
-	
+
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			_, err := parser.Parse(tt.query)
@@ -47,7 +47,7 @@ func TestParser_ParseBasicSelect(t *testing.T) {
 
 func TestParser_ExtractDataSource(t *testing.T) {
 	parser := NewParser()
-	
+
 	tests := []struct {
 		query      string
 		wantSource DataSource
@@ -69,7 +69,7 @@ func TestParser_ExtractDataSource(t *testing.T) {
 			wantSource: DataSourceTraces,
 		},
 	}
-	
+
 	for _, tt := range tests {
 		t.Run(tt.query, func(t *testing.T) {
 			q, err := parser.Parse(tt.query)
@@ -85,13 +85,13 @@ func TestParser_ExtractDataSource(t *testing.T) {
 
 func TestParser_ExtractFilters(t *testing.T) {
 	parser := NewParser()
-	
+
 	query := "SELECT * FROM metrics WHERE service = 'api' AND status != 'error'"
 	q, err := parser.Parse(query)
 	if err != nil {
 		t.Fatalf("Parse() error = %v", err)
 	}
-	
+
 	// Query parsing extracts time range but not specific filters in current implementation
 	// This test validates the structure is created correctly
 	if q.Statement == nil {
@@ -101,17 +101,17 @@ func TestParser_ExtractFilters(t *testing.T) {
 
 func TestParser_ExtractGroupBy(t *testing.T) {
 	parser := NewParser()
-	
+
 	query := "SELECT count(*) FROM logs GROUP BY level, service"
 	q, err := parser.Parse(query)
 	if err != nil {
 		t.Fatalf("Parse() error = %v", err)
 	}
-	
+
 	if len(q.Facets) != 2 {
 		t.Errorf("Expected 2 facets, got %d", len(q.Facets))
 	}
-	
+
 	expectedFacets := []string{"level", "service"}
 	for i, facet := range q.Facets {
 		if facet != expectedFacets[i] {
@@ -122,7 +122,7 @@ func TestParser_ExtractGroupBy(t *testing.T) {
 
 func TestParser_ExtractLimit(t *testing.T) {
 	parser := NewParser()
-	
+
 	tests := []struct {
 		query     string
 		wantLimit int
@@ -140,7 +140,7 @@ func TestParser_ExtractLimit(t *testing.T) {
 			wantLimit: 0,
 		},
 	}
-	
+
 	for _, tt := range tests {
 		t.Run(tt.query, func(t *testing.T) {
 			q, err := parser.Parse(tt.query)
@@ -156,7 +156,7 @@ func TestParser_ExtractLimit(t *testing.T) {
 
 func TestExtendedParser_ParseNRQL(t *testing.T) {
 	parser := NewExtendedParser()
-	
+
 	tests := []struct {
 		name    string
 		query   string
@@ -173,7 +173,7 @@ func TestExtendedParser_ParseNRQL(t *testing.T) {
 			wantErr: false,
 		},
 	}
-	
+
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			_, err := parser.ParseNRQL(tt.query)
@@ -186,13 +186,13 @@ func TestExtendedParser_ParseNRQL(t *testing.T) {
 
 func TestParser_TimeRange(t *testing.T) {
 	parser := NewParser()
-	
+
 	// Default time range should be set
 	q, err := parser.Parse("SELECT * FROM metrics")
 	if err != nil {
 		t.Fatalf("Parse() error = %v", err)
 	}
-	
+
 	// Should have a default time range
 	if q.TimeRange.Since.IsZero() {
 		t.Error("Since should not be zero")
@@ -203,7 +203,7 @@ func TestParser_TimeRange(t *testing.T) {
 	if q.TimeRange.Until.Before(q.TimeRange.Since) {
 		t.Error("Until should be after Since")
 	}
-	
+
 	// Default to last hour
 	duration := q.TimeRange.Until.Sub(q.TimeRange.Since)
 	if duration > 2*time.Hour || duration < 30*time.Minute {

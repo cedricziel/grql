@@ -185,25 +185,25 @@ func (ep *ExtendedParser) ParseNRQL(query string) (*Query, error) {
 func (ep *ExtendedParser) preprocessNRQL(query string) string {
 	// Convert NRQL-specific keywords to SQL equivalents
 	result := query
-	
+
 	// Convert FACET to GROUP BY
 	result = strings.ReplaceAll(result, " FACET ", " GROUP BY ")
-	
+
 	// Remove SINCE/UNTIL clauses for now (they're handled separately)
 	// In production, this would be more sophisticated
 	upperQuery := strings.ToUpper(result)
 	if idx := strings.Index(upperQuery, " SINCE "); idx > 0 {
 		result = result[:idx]
 	}
-	
+
 	upperQuery = strings.ToUpper(result)
 	if idx := strings.Index(upperQuery, " UNTIL "); idx > 0 {
 		result = result[:idx]
 	}
-	
+
 	if strings.Contains(strings.ToUpper(result), " TIMESERIES ") {
 		// Would handle TIMESERIES conversion
 	}
-	
+
 	return result
 }

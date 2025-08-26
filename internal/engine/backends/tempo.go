@@ -30,54 +30,54 @@ func NewTempoAdapter(baseURL string, tenantID string) *TempoAdapter {
 // ExecuteQuery executes a query against Tempo
 func (t *TempoAdapter) ExecuteQuery(ctx context.Context, query QueryRequest) (*QueryResponse, error) {
 	traceQL := t.translateToTraceQL(query)
-	
+
 	// Build the query URL for search
 	queryURL := fmt.Sprintf("%s/api/search", t.baseURL)
-	
+
 	params := url.Values{}
 	params.Set("q", traceQL)
 	params.Set("start", fmt.Sprintf("%d", query.TimeRange.Since.Unix()))
 	params.Set("end", fmt.Sprintf("%d", query.TimeRange.Until.Unix()))
-	
+
 	if query.Limit > 0 {
 		params.Set("limit", fmt.Sprintf("%d", query.Limit))
 	} else {
 		params.Set("limit", "100")
 	}
-	
+
 	req, err := http.NewRequestWithContext(ctx, "GET", queryURL+"?"+params.Encode(), nil)
 	if err != nil {
 		return nil, fmt.Errorf("failed to create request: %w", err)
 	}
-	
+
 	// Add tenant header if configured
 	if t.tenantID != "" {
 		req.Header.Set("X-Scope-OrgID", t.tenantID)
 	}
-	
+
 	resp, err := t.httpClient.Do(req)
 	if err != nil {
 		return nil, fmt.Errorf("failed to execute query: %w", err)
 	}
 	defer resp.Body.Close()
-	
+
 	if resp.StatusCode != http.StatusOK {
 		body, _ := io.ReadAll(resp.Body)
 		return nil, fmt.Errorf("query failed with status %d: %s", resp.StatusCode, string(body))
 	}
-	
+
 	return t.parseResponse(resp.Body)
 }
 
 // translateToTraceQL converts our query format to TraceQL
 func (t *TempoAdapter) translateToTraceQL(query QueryRequest) string {
 	var traceQL strings.Builder
-	
+
 	// TraceQL syntax: { span.attribute = "value" && resource.attribute = "value" }
 	traceQL.WriteString("{")
-	
+
 	conditions := make([]string, 0)
-	
+
 	// Add filters
 	for _, filter := range query.Filters {
 		condition := t.buildTraceCondition(filter)
@@ -85,22 +85,22 @@ func (t *TempoAdapter) translateToTraceQL(query QueryRequest) string {
 			conditions = append(conditions, condition)
 		}
 	}
-	
+
 	// Add duration filters if present
 	if t.hasDurationFilter(query) {
 		// Example: duration > 100ms
 		conditions = append(conditions, "duration > 100ms")
 	}
-	
+
 	if len(conditions) > 0 {
 		traceQL.WriteString(strings.Join(conditions, " && "))
 	} else {
 		// Default to all traces
 		traceQL.WriteString(".service.name != \"\"")
 	}
-	
+
 	traceQL.WriteString("}")
-	
+
 	// Add aggregations if present
 	if len(query.Aggregates) > 0 {
 		for _, agg := range query.Aggregates {
@@ -111,14 +111,14 @@ func (t *TempoAdapter) translateToTraceQL(query QueryRequest) string {
 			}
 		}
 	}
-	
+
 	// Add grouping
 	if len(query.GroupBy) > 0 {
 		traceQL.WriteString(" | by(")
 		traceQL.WriteString(strings.Join(query.GroupBy, ", "))
 		traceQL.WriteString(")")
 	}
-	
+
 	return traceQL.String()
 }
 
@@ -126,7 +126,7 @@ func (t *TempoAdapter) translateToTraceQL(query QueryRequest) string {
 func (t *TempoAdapter) buildTraceCondition(filter Filter) string {
 	// Map common fields to TraceQL attributes
 	field := t.mapFieldToTraceQL(filter.Field)
-	
+
 	switch filter.Operator {
 	case "=":
 		return fmt.Sprintf(`%s = "%v"`, field, filter.Value)
@@ -172,8 +172,8 @@ func (t *TempoAdapter) mapFieldToTraceQL(field string) string {
 		return ".kind"
 	default:
 		// Check if it's already prefixed
-		if strings.HasPrefix(field, ".") || strings.HasPrefix(field, "span.") || 
-		   strings.HasPrefix(field, "resource.") {
+		if strings.HasPrefix(field, ".") || strings.HasPrefix(field, "span.") ||
+			strings.HasPrefix(field, "resource.") {
 			return field
 		}
 		// Default to span attribute
@@ -224,7 +224,7 @@ func (t *TempoAdapter) parseResponse(body io.Reader) (*QueryResponse, error) {
 	if err := json.NewDecoder(body).Decode(&tempoResp); err != nil {
 		return nil, fmt.Errorf("failed to decode response: %w", err)
 	}
-	
+
 	return t.convertToQueryResponse(tempoResp), nil
 }
 
@@ -233,25 +233,25 @@ func (t *TempoAdapter) convertToQueryResponse(tempoResp TempoResponse) *QueryRes
 	response := &QueryResponse{
 		Results: make([]Result, 0),
 	}
-	
+
 	for _, trace := range tempoResp.Traces {
 		// Convert each trace to a result
 		r := Result{
 			Labels: make(map[string]string),
 			Values: make([]DataPoint, 0),
 		}
-		
+
 		// Extract trace metadata as labels
 		r.Labels["trace_id"] = trace.TraceID
 		r.Labels["root_service"] = trace.RootServiceName
 		r.Labels["root_trace_name"] = trace.RootTraceName
-		
+
 		// Duration as a data point
 		r.Values = append(r.Values, DataPoint{
 			Timestamp: time.Unix(0, trace.StartTimeUnixNano),
 			Value:     fmt.Sprintf("%d", trace.DurationMs),
 		})
-		
+
 		// Add span details if available
 		for _, span := range trace.Spans {
 			spanLabels := make(map[string]string)
@@ -261,7 +261,7 @@ func (t *TempoAdapter) convertToQueryResponse(tempoResp TempoResponse) *QueryRes
 			spanLabels["span_id"] = span.SpanID
 			spanLabels["span_name"] = span.Name
 			spanLabels["service_name"] = span.ServiceName
-			
+
 			spanResult := Result{
 				Labels: spanLabels,
 				Values: []DataPoint{{
@@ -271,13 +271,13 @@ func (t *TempoAdapter) convertToQueryResponse(tempoResp TempoResponse) *QueryRes
 			}
 			response.Results = append(response.Results, spanResult)
 		}
-		
+
 		// If no spans, add the trace itself
 		if len(trace.Spans) == 0 {
 			response.Results = append(response.Results, r)
 		}
 	}
-	
+
 	return response
 }
 
@@ -308,38 +308,38 @@ type SpanResult struct {
 // GetTraceByID retrieves a specific trace by ID
 func (t *TempoAdapter) GetTraceByID(ctx context.Context, traceID string) (*TraceDetail, error) {
 	queryURL := fmt.Sprintf("%s/api/traces/%s", t.baseURL, traceID)
-	
+
 	req, err := http.NewRequestWithContext(ctx, "GET", queryURL, nil)
 	if err != nil {
 		return nil, fmt.Errorf("failed to create request: %w", err)
 	}
-	
+
 	if t.tenantID != "" {
 		req.Header.Set("X-Scope-OrgID", t.tenantID)
 	}
-	
+
 	resp, err := t.httpClient.Do(req)
 	if err != nil {
 		return nil, fmt.Errorf("failed to get trace: %w", err)
 	}
 	defer resp.Body.Close()
-	
+
 	if resp.StatusCode != http.StatusOK {
 		body, _ := io.ReadAll(resp.Body)
 		return nil, fmt.Errorf("failed to get trace with status %d: %s", resp.StatusCode, string(body))
 	}
-	
+
 	var traceDetail TraceDetail
 	if err := json.NewDecoder(resp.Body).Decode(&traceDetail); err != nil {
 		return nil, fmt.Errorf("failed to decode trace: %w", err)
 	}
-	
+
 	return &traceDetail, nil
 }
 
 // TraceDetail represents detailed trace information
 type TraceDetail struct {
-	TraceID string                 `json:"traceID"`
+	TraceID string                   `json:"traceID"`
 	Spans   []map[string]interface{} `json:"spans"`
 }
 
@@ -350,9 +350,9 @@ func (t *TempoAdapter) Stream(ctx context.Context, query QueryRequest, ch chan<-
 	pollInterval := 5 * time.Second
 	ticker := time.NewTicker(pollInterval)
 	defer ticker.Stop()
-	
+
 	lastQuery := query.TimeRange.Since
-	
+
 	for {
 		select {
 		case <-ctx.Done():
@@ -364,12 +364,12 @@ func (t *TempoAdapter) Stream(ctx context.Context, query QueryRequest, ch chan<-
 				Since: lastQuery,
 				Until: time.Now(),
 			}
-			
+
 			resp, err := t.ExecuteQuery(ctx, currentQuery)
 			if err != nil {
 				return err
 			}
-			
+
 			for _, result := range resp.Results {
 				select {
 				case ch <- result:
@@ -377,16 +377,16 @@ func (t *TempoAdapter) Stream(ctx context.Context, query QueryRequest, ch chan<-
 					return ctx.Err()
 				}
 			}
-			
+
 			lastQuery = time.Now()
-			
+
 			// Stop if we've reached the end time
 			if lastQuery.After(query.TimeRange.Until) {
 				break
 			}
 		}
 	}
-	
+
 	return nil
 }
 

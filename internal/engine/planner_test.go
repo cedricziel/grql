@@ -7,7 +7,7 @@ import (
 func TestPlanner_CreateLogicalPlan(t *testing.T) {
 	parser := NewParser()
 	planner := NewPlanner()
-	
+
 	tests := []struct {
 		name    string
 		query   string
@@ -29,23 +29,23 @@ func TestPlanner_CreateLogicalPlan(t *testing.T) {
 			wantErr: false,
 		},
 	}
-	
+
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			q, err := parser.Parse(tt.query)
 			if err != nil {
 				t.Fatalf("Parse() error = %v", err)
 			}
-			
+
 			plan, err := planner.CreateLogicalPlan(q)
 			if (err != nil) != tt.wantErr {
 				t.Errorf("CreateLogicalPlan() error = %v, wantErr %v", err, tt.wantErr)
 			}
-			
+
 			if !tt.wantErr && plan == nil {
 				t.Error("Expected plan to be non-nil")
 			}
-			
+
 			if !tt.wantErr && plan.Root == nil {
 				t.Error("Expected plan root to be non-nil")
 			}
@@ -55,7 +55,7 @@ func TestPlanner_CreateLogicalPlan(t *testing.T) {
 
 func TestPlanner_SelectBackend(t *testing.T) {
 	planner := NewPlanner()
-	
+
 	tests := []struct {
 		dataSource DataSource
 		want       Backend
@@ -73,7 +73,7 @@ func TestPlanner_SelectBackend(t *testing.T) {
 			want:       BackendTempo,
 		},
 	}
-	
+
 	for _, tt := range tests {
 		t.Run(string(tt.dataSource), func(t *testing.T) {
 			backend := planner.selectBackend(tt.dataSource)
@@ -87,19 +87,19 @@ func TestPlanner_SelectBackend(t *testing.T) {
 func TestPlanner_PlanStructure(t *testing.T) {
 	parser := NewParser()
 	planner := NewPlanner()
-	
+
 	// Test scan node creation
 	q, _ := parser.Parse("SELECT * FROM metrics")
 	plan, _ := planner.CreateLogicalPlan(q)
-	
+
 	if _, ok := plan.Root.(*ScanNode); !ok {
 		t.Errorf("Expected root to be ScanNode, got %T", plan.Root)
 	}
-	
+
 	// Test aggregation node creation
 	q, _ = parser.Parse("SELECT count(*) FROM logs GROUP BY level")
 	plan, _ = planner.CreateLogicalPlan(q)
-	
+
 	if _, ok := plan.Root.(*AggregateNode); !ok {
 		t.Errorf("Expected root to be AggregateNode, got %T", plan.Root)
 	}
@@ -109,26 +109,26 @@ func TestOptimizer_Optimize(t *testing.T) {
 	parser := NewParser()
 	planner := NewPlanner()
 	optimizer := NewOptimizer()
-	
+
 	q, err := parser.Parse("SELECT * FROM metrics WHERE service = 'api'")
 	if err != nil {
 		t.Fatalf("Parse() error = %v", err)
 	}
-	
+
 	logicalPlan, err := planner.CreateLogicalPlan(q)
 	if err != nil {
 		t.Fatalf("CreateLogicalPlan() error = %v", err)
 	}
-	
+
 	optimizedPlan, err := optimizer.Optimize(logicalPlan)
 	if err != nil {
 		t.Fatalf("Optimize() error = %v", err)
 	}
-	
+
 	if optimizedPlan == nil {
 		t.Error("Expected optimized plan to be non-nil")
 	}
-	
+
 	if optimizedPlan.Root == nil {
 		t.Error("Expected optimized plan root to be non-nil")
 	}
@@ -137,30 +137,30 @@ func TestOptimizer_Optimize(t *testing.T) {
 func TestPlanner_CreatePhysicalPlan(t *testing.T) {
 	parser := NewParser()
 	planner := NewPlanner()
-	
+
 	q, err := parser.Parse("SELECT * FROM metrics")
 	if err != nil {
 		t.Fatalf("Parse() error = %v", err)
 	}
-	
+
 	logicalPlan, err := planner.CreateLogicalPlan(q)
 	if err != nil {
 		t.Fatalf("CreateLogicalPlan() error = %v", err)
 	}
-	
+
 	physicalPlan, err := planner.CreatePhysicalPlan(logicalPlan)
 	if err != nil {
 		t.Fatalf("CreatePhysicalPlan() error = %v", err)
 	}
-	
+
 	if physicalPlan == nil {
 		t.Error("Expected physical plan to be non-nil")
 	}
-	
+
 	if physicalPlan.Root == nil {
 		t.Error("Expected physical plan root to be non-nil")
 	}
-	
+
 	// Check backend is set
 	if physicalPlan.Backend == "" {
 		t.Error("Expected backend to be set in physical plan")
@@ -170,11 +170,11 @@ func TestPlanner_CreatePhysicalPlan(t *testing.T) {
 func TestPlanner_ExtractAggregates(t *testing.T) {
 	parser := NewParser()
 	planner := NewPlanner()
-	
+
 	tests := []struct {
-		query      string
-		wantCount  int
-		wantFuncs  []AggregateFunction
+		query     string
+		wantCount int
+		wantFuncs []AggregateFunction
 	}{
 		{
 			query:     "SELECT count(*) FROM metrics",
@@ -192,19 +192,19 @@ func TestPlanner_ExtractAggregates(t *testing.T) {
 			wantFuncs: []AggregateFunction{},
 		},
 	}
-	
+
 	for _, tt := range tests {
 		t.Run(tt.query, func(t *testing.T) {
 			q, err := parser.Parse(tt.query)
 			if err != nil {
 				t.Fatalf("Parse() error = %v", err)
 			}
-			
+
 			plan, err := planner.CreateLogicalPlan(q)
 			if err != nil {
 				t.Fatalf("CreateLogicalPlan() error = %v", err)
 			}
-			
+
 			// Check if aggregation node was created when expected
 			if tt.wantCount > 0 {
 				aggNode, ok := plan.Root.(*AggregateNode)

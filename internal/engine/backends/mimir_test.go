@@ -7,11 +7,11 @@ import (
 
 func TestMimirAdapter_TranslateToPromQL(t *testing.T) {
 	adapter := NewMimirAdapter("http://localhost:9009", "")
-	
+
 	tests := []struct {
-		name     string
-		query    QueryRequest
-		wantQL   string
+		name   string
+		query  QueryRequest
+		wantQL string
 	}{
 		{
 			name: "simple metric query",
@@ -67,7 +67,7 @@ func TestMimirAdapter_TranslateToPromQL(t *testing.T) {
 			wantQL: "rate(http_requests_total[5m])",
 		},
 	}
-	
+
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			got := adapter.translateToPromQL(tt.query)
@@ -80,7 +80,7 @@ func TestMimirAdapter_TranslateToPromQL(t *testing.T) {
 
 func TestMimirAdapter_CalculateStep(t *testing.T) {
 	adapter := NewMimirAdapter("http://localhost:9009", "")
-	
+
 	now := time.Now()
 	tests := []struct {
 		name      string
@@ -128,7 +128,7 @@ func TestMimirAdapter_CalculateStep(t *testing.T) {
 			wantStep: "1h",
 		},
 	}
-	
+
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			got := adapter.calculateStep(tt.timeRange)
@@ -141,33 +141,33 @@ func TestMimirAdapter_CalculateStep(t *testing.T) {
 
 func TestMimirAdapter_GetCapabilities(t *testing.T) {
 	adapter := NewMimirAdapter("http://localhost:9009", "")
-	
+
 	caps := adapter.GetCapabilities()
-	
+
 	if !caps.SupportsAggregation {
 		t.Error("Mimir should support aggregation")
 	}
-	
+
 	if !caps.SupportsGroupBy {
 		t.Error("Mimir should support group by")
 	}
-	
+
 	if !caps.SupportsRate {
 		t.Error("Mimir should support rate functions")
 	}
-	
+
 	if !caps.SupportsHistogram {
 		t.Error("Mimir should support histograms")
 	}
-	
+
 	if caps.MaxTimeRange == 0 {
 		t.Error("MaxTimeRange should be set")
 	}
-	
+
 	if len(caps.SupportedFunctions) == 0 {
 		t.Error("Should have supported functions")
 	}
-	
+
 	// Check for specific functions
 	expectedFuncs := []string{"count", "sum", "avg", "min", "max", "rate"}
 	for _, expected := range expectedFuncs {

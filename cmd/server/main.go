@@ -32,7 +32,7 @@ func main() {
 	grpcServer := grpc.NewServer()
 	queryServer := server.New()
 	pb.RegisterQueryServiceServer(grpcServer, queryServer)
-	
+
 	// Register reflection service for debugging with tools like grpcurl
 	reflection.Register(grpcServer)
 

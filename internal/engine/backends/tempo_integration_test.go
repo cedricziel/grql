@@ -98,10 +98,10 @@ func TestTempoIntegration(t *testing.T) {
 		}
 
 		otlpURL := fmt.Sprintf("http://%s:%s/v1/traces", host, otlpPort.Port())
-		
+
 		// Create a simple trace payload
 		tracePayload := createOTLPTracePayload()
-		
+
 		resp, err := http.Post(otlpURL, "application/json", tracePayload)
 		if err != nil {
 			t.Logf("Failed to send trace (this might be expected without full OTLP setup): %v", err)
@@ -136,23 +136,23 @@ func TestTempoIntegration(t *testing.T) {
 	// Test 4: Test capabilities
 	t.Run("TestCapabilities", func(t *testing.T) {
 		caps := adapter.GetCapabilities()
-		
+
 		if !caps.SupportsAggregation {
 			t.Error("Tempo should support aggregation")
 		}
-		
+
 		if !caps.SupportsGroupBy {
 			t.Error("Tempo should support group by")
 		}
-		
+
 		if caps.SupportsRate {
 			t.Error("Tempo should not support rate functions")
 		}
-		
+
 		if !caps.SupportsHistogram {
 			t.Error("Tempo should support histograms")
 		}
-		
+
 		if caps.MaxTimeRange == 0 {
 			t.Error("MaxTimeRange should be set")
 		}

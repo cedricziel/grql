@@ -35,9 +35,9 @@ func TestFederationIntegration(t *testing.T) {
 			ExposedPorts: []string{"9009/tcp"},
 			Cmd:          []string{"-target=all", "-server.http-listen-port=9009", "-server.grpc-listen-port=9095"},
 			Env: map[string]string{
-				"MIMIR_STORAGE_BACKEND": "filesystem",
-				"MIMIR_STORAGE_FILESYSTEM_DIR": "/tmp/mimir-blocks",
-				"MIMIR_COMPACTOR_DATA_DIR": "/tmp/mimir-compactor",
+				"MIMIR_STORAGE_BACKEND":                  "filesystem",
+				"MIMIR_STORAGE_FILESYSTEM_DIR":           "/tmp/mimir-blocks",
+				"MIMIR_COMPACTOR_DATA_DIR":               "/tmp/mimir-compactor",
 				"MIMIR_INGESTER_RING_REPLICATION_FACTOR": "1",
 			},
 			WaitingFor: wait.ForAll(
@@ -163,7 +163,7 @@ func TestFederationIntegration(t *testing.T) {
 	// Test 1: Query metrics through the federation layer
 	t.Run("QueryMetrics", func(t *testing.T) {
 		query := "SELECT cpu, memory FROM metrics WHERE service = 'api' SINCE 1h"
-		
+
 		response, err := executor.ExecuteQuery(ctx, query, nil)
 		if err != nil {
 			// Expected to fail without actual metrics
@@ -176,7 +176,7 @@ func TestFederationIntegration(t *testing.T) {
 	// Test 2: Query logs through the federation layer
 	t.Run("QueryLogs", func(t *testing.T) {
 		query := "SELECT * FROM logs WHERE level = 'error' SINCE 1h LIMIT 100"
-		
+
 		response, err := executor.ExecuteQuery(ctx, query, nil)
 		if err != nil {
 			// Expected to fail without actual logs
@@ -189,7 +189,7 @@ func TestFederationIntegration(t *testing.T) {
 	// Test 3: Query traces through the federation layer
 	t.Run("QueryTraces", func(t *testing.T) {
 		query := "SELECT * FROM traces WHERE duration > 100 SINCE 1h"
-		
+
 		response, err := executor.ExecuteQuery(ctx, query, nil)
 		if err != nil {
 			// Expected to fail without actual traces
@@ -282,22 +282,22 @@ func TestFederationIntegration(t *testing.T) {
 	// Test 6: Test caching behavior
 	t.Run("CachingBehavior", func(t *testing.T) {
 		query := "SELECT * FROM metrics WHERE service = 'test' SINCE 1h"
-		
+
 		// First query
 		start1 := time.Now()
 		_, err1 := executor.ExecuteQuery(ctx, query, nil)
 		duration1 := time.Since(start1)
-		
+
 		// Second query (should be cached)
 		start2 := time.Now()
 		_, err2 := executor.ExecuteQuery(ctx, query, nil)
 		duration2 := time.Since(start2)
-		
+
 		// Both should have same error status
 		if (err1 == nil) != (err2 == nil) {
 			t.Error("Cache returned different error status")
 		}
-		
+
 		// Cached query should be faster (though this might not always be true in tests)
 		t.Logf("First query: %v, Second query: %v", duration1, duration2)
 	})

@@ -33,11 +33,11 @@ type Aggregate struct {
 
 // QueryRequest represents a query request to a backend
 type QueryRequest struct {
-	MetricName string
-	TimeRange  TimeRange
 	Filters    []Filter
 	GroupBy    []string
 	Aggregates []Aggregate
+	TimeRange  TimeRange
+	MetricName string
 	Limit      int
 }
 
@@ -254,17 +254,23 @@ type DataPoint struct {
 	Value     string
 }
 
+// PrometheusResult represents a single result in the Prometheus response
+type PrometheusResult struct {
+	Metric map[string]string `json:"metric"`
+	Values [][]interface{}   `json:"values"`
+}
+
+// PrometheusData represents the data portion of a Prometheus response
+type PrometheusData struct {
+	ResultType string             `json:"resultType"`
+	Result     []PrometheusResult `json:"result"`
+}
+
 // PrometheusResponse represents the Prometheus API response format
 type PrometheusResponse struct {
-	Data struct {
-		Result []struct {
-			Values [][]interface{}   `json:"values"`
-			Metric map[string]string `json:"metric"`
-		} `json:"result"`
-		ResultType string `json:"resultType"`
-	} `json:"data"`
-	Status string `json:"status"`
-	Error  string `json:"error,omitempty"`
+	Status string         `json:"status"`
+	Error  string         `json:"error,omitempty"`
+	Data   PrometheusData `json:"data"`
 }
 
 // Stream executes a streaming query against Mimir

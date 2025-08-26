@@ -62,7 +62,10 @@ func (t *TempoAdapter) ExecuteQuery(ctx context.Context, query QueryRequest) (*Q
 	defer resp.Body.Close()
 
 	if resp.StatusCode != http.StatusOK {
-		body, _ := io.ReadAll(resp.Body)
+		body, err := io.ReadAll(resp.Body)
+		if err != nil {
+			return nil, fmt.Errorf("query failed with status %d: failed to read error body: %w", resp.StatusCode, err)
+		}
 		return nil, fmt.Errorf("query failed with status %d: %s", resp.StatusCode, string(body))
 	}
 
@@ -325,7 +328,10 @@ func (t *TempoAdapter) GetTraceByID(ctx context.Context, traceID string) (*Trace
 	defer resp.Body.Close()
 
 	if resp.StatusCode != http.StatusOK {
-		body, _ := io.ReadAll(resp.Body)
+		body, err := io.ReadAll(resp.Body)
+		if err != nil {
+			return nil, fmt.Errorf("failed to get trace with status %d: failed to read error body: %w", resp.StatusCode, err)
+		}
 		return nil, fmt.Errorf("failed to get trace with status %d: %s", resp.StatusCode, string(body))
 	}
 

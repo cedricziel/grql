@@ -63,7 +63,10 @@ func (l *LokiAdapter) ExecuteQuery(ctx context.Context, query QueryRequest) (*Qu
 	defer resp.Body.Close()
 
 	if resp.StatusCode != http.StatusOK {
-		body, _ := io.ReadAll(resp.Body)
+		body, err := io.ReadAll(resp.Body)
+		if err != nil {
+			return nil, fmt.Errorf("query failed with status %d: failed to read error body: %w", resp.StatusCode, err)
+		}
 		return nil, fmt.Errorf("query failed with status %d: %s", resp.StatusCode, string(body))
 	}
 
@@ -238,13 +241,23 @@ func (l *LokiAdapter) convertToQueryResponse(lokiResp LokiResponse) *QueryRespon
 
 			for _, value := range stream.Values {
 				// Loki returns [timestamp_nano, log_line]
-				timestampNano, _ := value[0].(string)
-				logLine, _ := value[1].(string)
+				timestampNano, ok := value[0].(string)
+				if !ok {
+					continue // Skip invalid entries
+				}
+				logLine, ok := value[1].(string)
+				if !ok {
+					continue // Skip invalid entries
+				}
 
-				nano, _ := fmt.Sscanf(timestampNano, "%d", new(int64))
+				var nanoValue int64
+				_, err := fmt.Sscanf(timestampNano, "%d", &nanoValue)
+				if err != nil {
+					continue // Skip invalid timestamps
+				}
 
 				r.Values = append(r.Values, DataPoint{
-					Timestamp: time.Unix(0, int64(nano)),
+					Timestamp: time.Unix(0, nanoValue),
 					Value:     logLine,
 				})
 			}
@@ -260,8 +273,15 @@ func (l *LokiAdapter) convertToQueryResponse(lokiResp LokiResponse) *QueryRespon
 			}
 
 			for _, value := range series.Values {
-				timestamp := int64(value[0].(float64))
-				val := value[1].(string)
+				timestampFloat, ok := value[0].(float64)
+				if !ok {
+					continue // Skip invalid entries
+				}
+				timestamp := int64(timestampFloat)
+				val, ok := value[1].(string)
+				if !ok {
+					continue // Skip invalid entries
+				}
 
 				r.Values = append(r.Values, DataPoint{
 					Timestamp: time.Unix(timestamp, 0),
@@ -317,7 +337,10 @@ func (l *LokiAdapter) Stream(ctx context.Context, query QueryRequest, ch chan<- 
 	defer resp.Body.Close()
 
 	if resp.StatusCode != http.StatusOK {
-		body, _ := io.ReadAll(resp.Body)
+		body, err := io.ReadAll(resp.Body)
+		if err != nil {
+			return fmt.Errorf("tail failed with status %d: failed to read error body: %w", resp.StatusCode, err)
+		}
 		return fmt.Errorf("tail failed with status %d: %s", resp.StatusCode, string(body))
 	}
 
@@ -345,9 +368,16 @@ func (l *LokiAdapter) Stream(ctx context.Context, query QueryRequest, ch chan<- 
 			}
 
 			for _, value := range stream.Values {
-				timestampNano, _ := fmt.Sscanf(value[0], "%d", new(int64))
+				if len(value) < 2 {
+					continue // Skip invalid entries
+				}
+				var nanoValue int64
+				_, err := fmt.Sscanf(value[0], "%d", &nanoValue)
+				if err != nil {
+					continue // Skip invalid timestamps
+				}
 				result.Values = append(result.Values, DataPoint{
-					Timestamp: time.Unix(0, int64(timestampNano)),
+					Timestamp: time.Unix(0, nanoValue),
 					Value:     value[1],
 				})
 			}

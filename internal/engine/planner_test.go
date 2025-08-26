@@ -126,7 +126,7 @@ func TestOptimizer_Optimize(t *testing.T) {
 	}
 
 	if optimizedPlan == nil {
-		t.Error("Expected optimized plan to be non-nil")
+		t.Fatal("Expected optimized plan to be non-nil")
 	}
 
 	if optimizedPlan.Root == nil {
@@ -154,7 +154,7 @@ func TestPlanner_CreatePhysicalPlan(t *testing.T) {
 	}
 
 	if physicalPlan == nil {
-		t.Error("Expected physical plan to be non-nil")
+		t.Fatal("Expected physical plan to be non-nil")
 	}
 
 	if physicalPlan.Root == nil {

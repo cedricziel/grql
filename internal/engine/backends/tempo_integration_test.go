@@ -51,8 +51,8 @@ func TestTempoIntegration(t *testing.T) {
 		t.Fatalf("Failed to start Tempo container: %v", err)
 	}
 	defer func() {
-		if err := tempoContainer.Terminate(ctx); err != nil {
-			t.Logf("Failed to terminate Tempo container: %v", err)
+		if termErr := tempoContainer.Terminate(ctx); termErr != nil {
+			t.Logf("Failed to terminate Tempo container: %v", termErr)
 		}
 	}()
 

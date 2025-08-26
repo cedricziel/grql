@@ -306,7 +306,6 @@ type AggregatedResultSet struct {
 	source     ResultSet
 	groupBy    []string
 	aggregates []Aggregate
-	groups     map[string][]Row
 	current    Row
 	index      int
 	results    []Row

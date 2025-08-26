@@ -88,7 +88,7 @@ func (p *Parser) extractSelectInfo(q *Query, stmt *sqlparser.Select) error {
 	// Extract LIMIT
 	if stmt.Limit != nil {
 		if count, ok := stmt.Limit.Rowcount.(*sqlparser.Literal); ok {
-			fmt.Sscanf(string(count.Val), "%d", &q.Limit)
+			_, _ = fmt.Sscanf(string(count.Val), "%d", &q.Limit) // Ignoring error, using default if invalid
 		}
 	}
 
@@ -133,7 +133,7 @@ func (p *Parser) extractTimeRange(q *Query, expr sqlparser.Expr) {
 	}
 
 	// Walk the expression tree looking for time-related conditions
-	sqlparser.Walk(func(node sqlparser.SQLNode) (kontinue bool, err error) {
+	_ = sqlparser.Walk(func(node sqlparser.SQLNode) (kontinue bool, err error) {
 		if comp, ok := node.(*sqlparser.ComparisonExpr); ok {
 			p.extractTimeComparison(q, comp)
 		}
@@ -201,9 +201,10 @@ func (ep *ExtendedParser) preprocessNRQL(query string) string {
 		result = result[:idx]
 	}
 
-	if strings.Contains(strings.ToUpper(result), " TIMESERIES ") {
-		// Would handle TIMESERIES conversion
-	}
+	// TODO: Handle TIMESERIES conversion when needed
+	// if strings.Contains(strings.ToUpper(result), " TIMESERIES ") {
+	//     // Would handle TIMESERIES conversion
+	// }
 
 	return result
 }

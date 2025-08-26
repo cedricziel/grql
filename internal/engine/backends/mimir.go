@@ -19,9 +19,9 @@ type TimeRange struct {
 
 // Filter represents a filter condition
 type Filter struct {
+	Value    interface{}
 	Field    string
 	Operator string
-	Value    interface{}
 }
 
 // Aggregate represents an aggregation
@@ -87,7 +87,10 @@ func (m *MimirAdapter) ExecuteQuery(ctx context.Context, query QueryRequest) (*Q
 	defer resp.Body.Close()
 
 	if resp.StatusCode != http.StatusOK {
-		body, _ := io.ReadAll(resp.Body)
+		body, err := io.ReadAll(resp.Body)
+		if err != nil {
+			return nil, fmt.Errorf("query failed with status %d: failed to read error body: %w", resp.StatusCode, err)
+		}
 		return nil, fmt.Errorf("query failed with status %d: %s", resp.StatusCode, string(body))
 	}
 
@@ -128,7 +131,7 @@ func (m *MimirAdapter) translateToPromQL(query QueryRequest) string {
 				promQL.WriteString(fmt.Sprintf(" by (%s)", strings.Join(query.GroupBy, ", ")))
 			}
 
-			break // For now, handle only first aggregate
+			// Only handle first aggregate for now
 		}
 	} else {
 		// No aggregation, just the metric
@@ -211,8 +214,15 @@ func (m *MimirAdapter) convertToQueryResponse(promResp PrometheusResponse) *Quer
 		}
 
 		for _, value := range result.Values {
-			timestamp := int64(value[0].(float64))
-			val := value[1].(string)
+			timestampFloat, ok := value[0].(float64)
+			if !ok {
+				continue // Skip invalid entries
+			}
+			timestamp := int64(timestampFloat)
+			val, ok := value[1].(string)
+			if !ok {
+				continue // Skip invalid entries
+			}
 
 			r.Values = append(r.Values, DataPoint{
 				Timestamp: time.Unix(timestamp, 0),
@@ -228,8 +238,8 @@ func (m *MimirAdapter) convertToQueryResponse(promResp PrometheusResponse) *Quer
 
 // QueryResponse represents a response from a backend
 type QueryResponse struct {
-	Results []Result
 	Error   string
+	Results []Result
 }
 
 // Result represents a single time series result

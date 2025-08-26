@@ -42,8 +42,8 @@ func TestLokiIntegration(t *testing.T) {
 		t.Fatalf("Failed to start Loki container: %v", err)
 	}
 	defer func() {
-		if err := lokiContainer.Terminate(ctx); err != nil {
-			t.Logf("Failed to terminate Loki container: %v", err)
+		if termErr := lokiContainer.Terminate(ctx); termErr != nil {
+			t.Logf("Failed to terminate Loki container: %v", termErr)
 		}
 	}()
 

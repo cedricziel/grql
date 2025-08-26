@@ -138,7 +138,7 @@ func (p *Planner) extractColumns(selectExprs []sqlparser.SelectExpr) []string {
 func (p *Planner) extractFilters(expr sqlparser.Expr) []Filter {
 	filters := make([]Filter, 0)
 
-	sqlparser.Walk(func(node sqlparser.SQLNode) (kontinue bool, err error) {
+	_ = sqlparser.Walk(func(node sqlparser.SQLNode) (kontinue bool, err error) {
 		switch n := node.(type) {
 		case *sqlparser.ComparisonExpr:
 			filter := p.extractComparisonFilter(n)
@@ -236,7 +236,7 @@ func (p *Planner) hasAggregates(selectExprs []sqlparser.SelectExpr) bool {
 	hasAgg := false
 
 	for _, expr := range selectExprs {
-		sqlparser.Walk(func(node sqlparser.SQLNode) (kontinue bool, err error) {
+		_ = sqlparser.Walk(func(node sqlparser.SQLNode) (kontinue bool, err error) {
 			switch node.(type) {
 			case *sqlparser.FuncExpr, *sqlparser.CountStar, *sqlparser.Count,
 				*sqlparser.Sum, *sqlparser.Avg, *sqlparser.Max, *sqlparser.Min:
@@ -375,7 +375,7 @@ func (p *Planner) extractAggregate(funcExpr *sqlparser.FuncExpr, alias string) *
 
 	// Extract field from function arguments
 	var field string
-	if funcExpr.Exprs != nil && len(funcExpr.Exprs) > 0 {
+	if len(funcExpr.Exprs) > 0 {
 		// Check the type of the first expression
 		switch expr := funcExpr.Exprs[0].(type) {
 		case *sqlparser.ColName:

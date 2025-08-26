@@ -160,7 +160,7 @@ func (e *Executor) applyParameters(query *Query, params map[string]string) {
 				query.TimeRange.Until = time.Now().Add(-duration)
 			}
 		case "limit":
-			fmt.Sscanf(value, "%d", &query.Limit)
+			_, _ = fmt.Sscanf(value, "%d", &query.Limit) // Ignoring error, using default if invalid
 		}
 	}
 }
@@ -257,9 +257,9 @@ func (e *Executor) convertToResultSet(response *backends.QueryResponse) ResultSe
 
 // BackendResultSet implements ResultSet for backend responses
 type BackendResultSet struct {
+	current  Row
 	response *backends.QueryResponse
 	index    int
-	current  Row
 }
 
 func (b *BackendResultSet) Next() bool {
@@ -462,10 +462,16 @@ func (e *Executor) convertValueToProto(value interface{}) *pb.Value {
 	switch v := value.(type) {
 	case string:
 		return &pb.Value{Value: &pb.Value_StringValue{StringValue: v}}
-	case int, int32, int64:
-		return &pb.Value{Value: &pb.Value_IntValue{IntValue: v.(int64)}}
-	case float32, float64:
-		return &pb.Value{Value: &pb.Value_FloatValue{FloatValue: v.(float64)}}
+	case int:
+		return &pb.Value{Value: &pb.Value_IntValue{IntValue: int64(v)}}
+	case int32:
+		return &pb.Value{Value: &pb.Value_IntValue{IntValue: int64(v)}}
+	case int64:
+		return &pb.Value{Value: &pb.Value_IntValue{IntValue: v}}
+	case float32:
+		return &pb.Value{Value: &pb.Value_FloatValue{FloatValue: float64(v)}}
+	case float64:
+		return &pb.Value{Value: &pb.Value_FloatValue{FloatValue: v}}
 	case bool:
 		return &pb.Value{Value: &pb.Value_BoolValue{BoolValue: v}}
 	case []byte:

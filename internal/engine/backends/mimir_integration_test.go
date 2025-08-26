@@ -54,8 +54,8 @@ func TestMimirIntegration(t *testing.T) {
 		t.Fatalf("Failed to start Mimir container: %v", err)
 	}
 	defer func() {
-		if err := mimirContainer.Terminate(ctx); err != nil {
-			t.Logf("Failed to terminate Mimir container: %v", err)
+		if termErr := mimirContainer.Terminate(ctx); termErr != nil {
+			t.Logf("Failed to terminate Mimir container: %v", termErr)
 		}
 	}()
 

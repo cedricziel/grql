@@ -269,11 +269,17 @@ func (f *FilteredResultSet) Current() Row {
 }
 
 func (f *FilteredResultSet) Close() error {
-	return f.source.Close()
+	if f.source != nil {
+		return f.source.Close()
+	}
+	return nil
 }
 
 func (f *FilteredResultSet) Schema() Schema {
-	return f.source.Schema()
+	if f.source != nil {
+		return f.source.Schema()
+	}
+	return Schema{}
 }
 
 func (f *FilteredResultSet) matchesFilters(row Row) bool {
@@ -331,7 +337,10 @@ func (a *AggregatedResultSet) Current() Row {
 }
 
 func (a *AggregatedResultSet) Close() error {
-	return a.source.Close()
+	if a.source != nil {
+		return a.source.Close()
+	}
+	return nil
 }
 
 func (a *AggregatedResultSet) Schema() Schema {
@@ -371,17 +380,30 @@ func (j *JoinedResultSet) Current() Row {
 }
 
 func (j *JoinedResultSet) Close() error {
-	if err := j.left.Close(); err != nil {
-		return err
+	var leftErr, rightErr error
+	if j.left != nil {
+		leftErr = j.left.Close()
 	}
-	return j.right.Close()
+	if j.right != nil {
+		rightErr = j.right.Close()
+	}
+	if leftErr != nil {
+		return leftErr
+	}
+	return rightErr
 }
 
 func (j *JoinedResultSet) Schema() Schema {
 	// Merge schemas from both sides
-	leftSchema := j.left.Schema()
-	rightSchema := j.right.Schema()
-	columns := append(leftSchema.Columns, rightSchema.Columns...)
+	var columns []Column
+	if j.left != nil {
+		leftSchema := j.left.Schema()
+		columns = append(columns, leftSchema.Columns...)
+	}
+	if j.right != nil {
+		rightSchema := j.right.Schema()
+		columns = append(columns, rightSchema.Columns...)
+	}
 	return Schema{Columns: columns}
 }
 

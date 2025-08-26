@@ -231,7 +231,7 @@ func TestFederationIntegration(t *testing.T) {
 
 	// Test 5: Test query parsing and planning
 	t.Run("QueryPlanningValidation", func(t *testing.T) {
-		parser := NewParser()
+		parser := NewExtendedParser()
 		planner := NewPlanner()
 		optimizer := NewOptimizer()
 
@@ -245,7 +245,7 @@ func TestFederationIntegration(t *testing.T) {
 		for _, q := range queries {
 			t.Run(q, func(t *testing.T) {
 				// Parse
-				parsed, err := parser.Parse(q)
+				parsed, err := parser.ParseNRQL(q)
 				if err != nil {
 					t.Errorf("Failed to parse query: %v", err)
 					return

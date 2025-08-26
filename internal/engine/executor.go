@@ -101,7 +101,9 @@ func (e *Executor) ExecuteQuery(ctx context.Context, sqlQuery string, params map
 	if err != nil {
 		return nil, fmt.Errorf("failed to execute plan: %w", err)
 	}
-	defer resultSet.Close()
+	if resultSet != nil {
+		defer resultSet.Close()
+	}
 
 	// Convert to protobuf response
 	response := e.convertToProtoResponse(resultSet, time.Since(startTime))

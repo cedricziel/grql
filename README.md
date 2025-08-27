@@ -18,7 +18,7 @@ A unified query engine that provides a SQL-like query interface (similar to NRQL
 
 ## Project Structure
 
-```
+```bash
 grql/
 ├── cmd/
 │   └── server/         # Server entry point
@@ -47,6 +47,7 @@ grql/
 ## Installation
 
 Install the required Go plugins:
+
 ```bash
 go install google.golang.org/protobuf/cmd/protoc-gen-go@latest
 go install google.golang.org/grpc/cmd/protoc-gen-go-grpc@latest
@@ -71,7 +72,7 @@ Set environment variables to configure backend connections:
 
 ```bash
 export MIMIR_URL=http://localhost:9009     # Grafana Mimir endpoint
-export LOKI_URL=http://localhost:3100      # Grafana Loki endpoint  
+export LOKI_URL=http://localhost:3100      # Grafana Loki endpoint
 export TEMPO_URL=http://localhost:3200     # Grafana Tempo endpoint
 export TENANT_ID=my-tenant                 # Optional multi-tenant ID
 ```
@@ -91,6 +92,7 @@ make run
 The service exposes two main RPC methods:
 
 ### ExecuteQuery
+
 Execute a query and receive all results at once.
 
 ```protobuf
@@ -98,6 +100,7 @@ rpc ExecuteQuery(QueryRequest) returns (QueryResponse);
 ```
 
 ### StreamQuery
+
 Execute a query and receive results as a stream.
 
 ```protobuf
@@ -110,15 +113,15 @@ The query engine supports NRQL-like SQL syntax for querying across backends:
 
 ```sql
 -- Query metrics from Mimir
-SELECT avg(cpu_usage), max(memory_usage) FROM metrics 
+SELECT avg(cpu_usage), max(memory_usage) FROM metrics
 WHERE service="api" GROUP BY instance SINCE 1 hour ago
 
 -- Query logs from Loki
-SELECT count(*) FROM logs 
+SELECT count(*) FROM logs
 WHERE level="error" AND service="frontend" SINCE 24 hours ago
 
 -- Query traces from Tempo
-SELECT avg(duration), count(*) FROM traces 
+SELECT avg(duration), count(*) FROM traces
 WHERE service_name="checkout" AND duration > 100 GROUP BY operation_name
 
 -- Correlate logs and metrics (federation)
@@ -168,6 +171,7 @@ go build -o bin/grql-server cmd/server/main.go
 ## Architecture Notes
 
 The query engine compiles and includes:
+
 - SQL parser with NRQL-like extensions using Vitess sqlparser
 - Query planner with cost-based optimization
 - Backend adapters for Mimir (PromQL), Loki (LogQL), and Tempo (TraceQL)

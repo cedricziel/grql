@@ -2,9 +2,9 @@
 // versions:
 // - protoc-gen-go-grpc v1.5.1
 // - protoc             v6.32.0
-// source: proto/query.proto
+// source: grql/v1/query.proto
 
-package proto
+package grqlv1
 
 import (
 	context "context"
@@ -19,8 +19,8 @@ import (
 const _ = grpc.SupportPackageIsVersion9
 
 const (
-	QueryService_ExecuteQuery_FullMethodName = "/grql.QueryService/ExecuteQuery"
-	QueryService_StreamQuery_FullMethodName  = "/grql.QueryService/StreamQuery"
+	QueryService_ExecuteQuery_FullMethodName = "/grql.v1.QueryService/ExecuteQuery"
+	QueryService_StreamQuery_FullMethodName  = "/grql.v1.QueryService/StreamQuery"
 )
 
 // QueryServiceClient is the client API for QueryService service.
@@ -152,7 +152,7 @@ type QueryService_StreamQueryServer = grpc.ServerStreamingServer[QueryResult]
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
 var QueryService_ServiceDesc = grpc.ServiceDesc{
-	ServiceName: "grql.QueryService",
+	ServiceName: "grql.v1.QueryService",
 	HandlerType: (*QueryServiceServer)(nil),
 	Methods: []grpc.MethodDesc{
 		{
@@ -167,5 +167,5 @@ var QueryService_ServiceDesc = grpc.ServiceDesc{
 			ServerStreams: true,
 		},
 	},
-	Metadata: "proto/query.proto",
+	Metadata: "grql/v1/query.proto",
 }

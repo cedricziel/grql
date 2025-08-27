@@ -6,8 +6,8 @@ import (
 	"sync"
 	"time"
 
-	"github.com/cedricziel/grql/internal/engine/backends"
-	pb "github.com/cedricziel/grql/proto"
+	"github.com/cedricziel/grql/server/internal/engine/backends"
+	pb "github.com/cedricziel/grql/server/internal/proto/grql/v1"
 )
 
 // BackendClient interface for backend operations

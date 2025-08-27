@@ -18,24 +18,39 @@ A unified query engine that provides a SQL-like query interface (similar to NRQL
 
 ## Project Structure
 
+This is a monorepo using Go workspaces:
+
 ```bash
 grql/
-├── cmd/
-│   └── server/         # Server entry point
-├── internal/
-│   ├── server/         # gRPC server implementation
-│   └── engine/         # Query engine components
-│       ├── parser.go   # SQL parser with NRQL extensions
-│       ├── planner.go  # Query planner and optimizer
-│       ├── executor.go # Query executor with caching
-│       ├── plan.go     # Query plan data structures
-│       └── backends/   # Backend adapters
-│           ├── mimir.go  # Mimir/PromQL adapter
-│           ├── loki.go   # Loki/LogQL adapter
-│           └── tempo.go # Tempo/TraceQL adapter
-├── proto/              # Protocol buffer definitions
-├── Makefile           # Build commands
-└── go.mod             # Go module definition
+├── go.work             # Go workspace configuration
+├── proto/              # Shared protobuf definitions
+│   └── grql/v1/
+│       └── query.proto
+├── server/             # gRQL server module
+│   ├── go.mod
+│   ├── cmd/
+│   │   └── server/     # Server entry point
+│   ├── internal/
+│   │   ├── server/     # gRPC server implementation
+│   │   ├── engine/     # Query engine components
+│   │   │   ├── parser.go   # SQL parser with NRQL extensions
+│   │   │   ├── planner.go  # Query planner and optimizer
+│   │   │   ├── executor.go # Query executor with caching
+│   │   │   ├── plan.go     # Query plan data structures
+│   │   │   └── backends/   # Backend adapters
+│   │   │       ├── mimir.go  # Mimir/PromQL adapter
+│   │   │       ├── loki.go   # Loki/LogQL adapter
+│   │   │       └── tempo.go # Tempo/TraceQL adapter
+│   │   └── proto/      # Generated protobuf code
+│   └── Dockerfile
+├── grafana-plugin/     # Grafana datasource plugin
+│   ├── go.mod
+│   ├── package.json
+│   ├── src/            # TypeScript/React frontend
+│   ├── pkg/            # Go backend plugin
+│   └── internal/proto/ # Generated protobuf code
+├── docker-compose.yaml # Full development environment
+└── Makefile           # Build commands
 ```
 
 ## Prerequisites
@@ -63,7 +78,7 @@ make proto
 make build
 
 # Or build directly with go
-go build -o bin/grql-server cmd/server/main.go
+cd server && go build -o ../bin/grql-server cmd/server/main.go
 ```
 
 ## Configuration

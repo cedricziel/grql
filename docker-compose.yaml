@@ -1,0 +1,88 @@
+services:
+  # gRQL Server
+  grql:
+    build:
+      context: ./server
+      dockerfile: Dockerfile
+    container_name: grql-server
+    ports:
+      - 50051:50051
+    environment:
+      - MIMIR_URL=${MIMIR_URL:-http://mimir:9009}
+      - LOKI_URL=${LOKI_URL:-http://loki:3100}
+      - TEMPO_URL=${TEMPO_URL:-http://tempo:3200}
+      - TENANT_ID=${TENANT_ID:-}
+    networks:
+      - grql-network
+    depends_on:
+      - mimir
+      - loki
+      - tempo
+
+  # Grafana Mimir (metrics backend)
+  mimir:
+    image: grafana/mimir:latest
+    container_name: grql-mimir
+    ports:
+      - 9009:9009
+    command:
+      - -config.file=/etc/mimir/config.yaml
+      - -target=all
+      - -server.http-listen-port=9009
+    volumes:
+      - mimir-data:/tmp/mimir
+    networks:
+      - grql-network
+
+  # Grafana Loki (logs backend)
+  loki:
+    image: grafana/loki:latest
+    container_name: grql-loki
+    ports:
+      - 3100:3100
+    command: -config.file=/etc/loki/local-config.yaml
+    volumes:
+      - loki-data:/loki
+    networks:
+      - grql-network
+
+  # Grafana Tempo (traces backend)
+  tempo:
+    image: grafana/tempo:latest
+    container_name: grql-tempo
+    ports:
+      - 3200:3200
+      - 4317:4317  # OTLP gRPC
+      - 4318:4318  # OTLP HTTP
+    command:
+      - -config.file=/etc/tempo.yaml
+    volumes:
+      - tempo-data:/tmp/tempo
+    networks:
+      - grql-network
+
+  # Grafana (optional, for testing)
+  grafana:
+    image: grafana/grafana:latest
+    container_name: grql-grafana
+    ports:
+      - 3000:3000
+    environment:
+      - GF_AUTH_ANONYMOUS_ENABLED=true
+      - GF_AUTH_ANONYMOUS_ORG_ROLE=Admin
+    volumes:
+      - grafana-data:/var/lib/grafana
+    networks:
+      - grql-network
+    depends_on:
+      - grql
+
+networks:
+  grql-network:
+    driver: bridge
+
+volumes:
+  mimir-data:
+  loki-data:
+  tempo-data:
+  grafana-data:

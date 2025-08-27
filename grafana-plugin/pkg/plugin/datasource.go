@@ -11,8 +11,8 @@ import (
 	"github.com/grafana/grafana-plugin-sdk-go/backend/instancemgmt"
 	"github.com/grafana/grafana-plugin-sdk-go/data"
 	
-	pb "github.com/cedricziel/grql/internal/proto"
-	"github.com/cedricziel/grql/pkg/models"
+	pb "github.com/cedricziel/grql/grafana-plugin/internal/proto/grql/v1"
+	"github.com/cedricziel/grql/grafana-plugin/pkg/models"
 )
 
 // Make sure Datasource implements required interfaces. This is important to do

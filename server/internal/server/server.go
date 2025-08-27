@@ -6,8 +6,8 @@ import (
 	"log"
 	"os"
 
-	"github.com/cedricziel/grql/internal/engine"
-	pb "github.com/cedricziel/grql/proto"
+	"github.com/cedricziel/grql/server/internal/engine"
+	pb "github.com/cedricziel/grql/server/internal/proto/grql/v1"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
 )

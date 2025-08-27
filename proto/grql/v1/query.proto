@@ -1,8 +1,8 @@
 syntax = "proto3";
 
-package grql;
+package grql.v1;
 
-option go_package = "github.com/cedricziel/grql/internal/proto";
+option go_package = "github.com/cedricziel/grql/proto/grql/v1;grqlv1";
 
 // Query service for SQL-like query language
 service QueryService {

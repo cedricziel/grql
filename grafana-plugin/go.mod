@@ -1,4 +1,4 @@
-module github.com/cedricziel/grql
+module github.com/cedricziel/grql/grafana-plugin
 
 go 1.24.1
 

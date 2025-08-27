@@ -2,9 +2,9 @@
 // versions:
 // 	protoc-gen-go v1.36.8
 // 	protoc        v6.32.0
-// source: proto/query.proto
+// source: grql/v1/query.proto
 
-package proto
+package grqlv1
 
 import (
 	protoreflect "google.golang.org/protobuf/reflect/protoreflect"
@@ -34,7 +34,7 @@ type QueryRequest struct {
 
 func (x *QueryRequest) Reset() {
 	*x = QueryRequest{}
-	mi := &file_proto_query_proto_msgTypes[0]
+	mi := &file_grql_v1_query_proto_msgTypes[0]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -46,7 +46,7 @@ func (x *QueryRequest) String() string {
 func (*QueryRequest) ProtoMessage() {}
 
 func (x *QueryRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_proto_query_proto_msgTypes[0]
+	mi := &file_grql_v1_query_proto_msgTypes[0]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -59,7 +59,7 @@ func (x *QueryRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use QueryRequest.ProtoReflect.Descriptor instead.
 func (*QueryRequest) Descriptor() ([]byte, []int) {
-	return file_proto_query_proto_rawDescGZIP(), []int{0}
+	return file_grql_v1_query_proto_rawDescGZIP(), []int{0}
 }
 
 func (x *QueryRequest) GetQuery() string {
@@ -102,7 +102,7 @@ type QueryResponse struct {
 
 func (x *QueryResponse) Reset() {
 	*x = QueryResponse{}
-	mi := &file_proto_query_proto_msgTypes[1]
+	mi := &file_grql_v1_query_proto_msgTypes[1]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -114,7 +114,7 @@ func (x *QueryResponse) String() string {
 func (*QueryResponse) ProtoMessage() {}
 
 func (x *QueryResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_proto_query_proto_msgTypes[1]
+	mi := &file_grql_v1_query_proto_msgTypes[1]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -127,7 +127,7 @@ func (x *QueryResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use QueryResponse.ProtoReflect.Descriptor instead.
 func (*QueryResponse) Descriptor() ([]byte, []int) {
-	return file_proto_query_proto_rawDescGZIP(), []int{1}
+	return file_grql_v1_query_proto_rawDescGZIP(), []int{1}
 }
 
 func (x *QueryResponse) GetResults() []*QueryResult {
@@ -161,7 +161,7 @@ type QueryResult struct {
 
 func (x *QueryResult) Reset() {
 	*x = QueryResult{}
-	mi := &file_proto_query_proto_msgTypes[2]
+	mi := &file_grql_v1_query_proto_msgTypes[2]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -173,7 +173,7 @@ func (x *QueryResult) String() string {
 func (*QueryResult) ProtoMessage() {}
 
 func (x *QueryResult) ProtoReflect() protoreflect.Message {
-	mi := &file_proto_query_proto_msgTypes[2]
+	mi := &file_grql_v1_query_proto_msgTypes[2]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -186,7 +186,7 @@ func (x *QueryResult) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use QueryResult.ProtoReflect.Descriptor instead.
 func (*QueryResult) Descriptor() ([]byte, []int) {
-	return file_proto_query_proto_rawDescGZIP(), []int{2}
+	return file_grql_v1_query_proto_rawDescGZIP(), []int{2}
 }
 
 func (x *QueryResult) GetFields() map[string]*Value {
@@ -213,7 +213,7 @@ type Value struct {
 
 func (x *Value) Reset() {
 	*x = Value{}
-	mi := &file_proto_query_proto_msgTypes[3]
+	mi := &file_grql_v1_query_proto_msgTypes[3]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -225,7 +225,7 @@ func (x *Value) String() string {
 func (*Value) ProtoMessage() {}
 
 func (x *Value) ProtoReflect() protoreflect.Message {
-	mi := &file_proto_query_proto_msgTypes[3]
+	mi := &file_grql_v1_query_proto_msgTypes[3]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -238,7 +238,7 @@ func (x *Value) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use Value.ProtoReflect.Descriptor instead.
 func (*Value) Descriptor() ([]byte, []int) {
-	return file_proto_query_proto_rawDescGZIP(), []int{3}
+	return file_grql_v1_query_proto_rawDescGZIP(), []int{3}
 }
 
 func (x *Value) GetValue() isValue_Value {
@@ -339,7 +339,7 @@ type QueryMetadata struct {
 
 func (x *QueryMetadata) Reset() {
 	*x = QueryMetadata{}
-	mi := &file_proto_query_proto_msgTypes[4]
+	mi := &file_grql_v1_query_proto_msgTypes[4]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -351,7 +351,7 @@ func (x *QueryMetadata) String() string {
 func (*QueryMetadata) ProtoMessage() {}
 
 func (x *QueryMetadata) ProtoReflect() protoreflect.Message {
-	mi := &file_proto_query_proto_msgTypes[4]
+	mi := &file_grql_v1_query_proto_msgTypes[4]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -364,7 +364,7 @@ func (x *QueryMetadata) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use QueryMetadata.ProtoReflect.Descriptor instead.
 func (*QueryMetadata) Descriptor() ([]byte, []int) {
-	return file_proto_query_proto_rawDescGZIP(), []int{4}
+	return file_grql_v1_query_proto_rawDescGZIP(), []int{4}
 }
 
 func (x *QueryMetadata) GetRowsAffected() int64 {
@@ -399,7 +399,7 @@ type ColumnInfo struct {
 
 func (x *ColumnInfo) Reset() {
 	*x = ColumnInfo{}
-	mi := &file_proto_query_proto_msgTypes[5]
+	mi := &file_grql_v1_query_proto_msgTypes[5]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -411,7 +411,7 @@ func (x *ColumnInfo) String() string {
 func (*ColumnInfo) ProtoMessage() {}
 
 func (x *ColumnInfo) ProtoReflect() protoreflect.Message {
-	mi := &file_proto_query_proto_msgTypes[5]
+	mi := &file_grql_v1_query_proto_msgTypes[5]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -424,7 +424,7 @@ func (x *ColumnInfo) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ColumnInfo.ProtoReflect.Descriptor instead.
 func (*ColumnInfo) Descriptor() ([]byte, []int) {
-	return file_proto_query_proto_rawDescGZIP(), []int{5}
+	return file_grql_v1_query_proto_rawDescGZIP(), []int{5}
 }
 
 func (x *ColumnInfo) GetName() string {
@@ -441,30 +441,30 @@ func (x *ColumnInfo) GetType() string {
 	return ""
 }
 
-var File_proto_query_proto protoreflect.FileDescriptor
+var File_grql_v1_query_proto protoreflect.FileDescriptor
 
-const file_proto_query_proto_rawDesc = "" +
+const file_grql_v1_query_proto_rawDesc = "" +
 	"\n" +
-	"\x11proto/query.proto\x12\x04grql\"\xd5\x01\n" +
+	"\x13grql/v1/query.proto\x12\agrql.v1\"\xd8\x01\n" +
 	"\fQueryRequest\x12\x14\n" +
-	"\x05query\x18\x01 \x01(\tR\x05query\x12B\n" +
+	"\x05query\x18\x01 \x01(\tR\x05query\x12E\n" +
 	"\n" +
-	"parameters\x18\x02 \x03(\v2\".grql.QueryRequest.ParametersEntryR\n" +
+	"parameters\x18\x02 \x03(\v2%.grql.v1.QueryRequest.ParametersEntryR\n" +
 	"parameters\x12\x14\n" +
 	"\x05limit\x18\x03 \x01(\x05R\x05limit\x12\x16\n" +
 	"\x06offset\x18\x04 \x01(\x05R\x06offset\x1a=\n" +
 	"\x0fParametersEntry\x12\x10\n" +
 	"\x03key\x18\x01 \x01(\tR\x03key\x12\x14\n" +
-	"\x05value\x18\x02 \x01(\tR\x05value:\x028\x01\"\x83\x01\n" +
-	"\rQueryResponse\x12+\n" +
-	"\aresults\x18\x01 \x03(\v2\x11.grql.QueryResultR\aresults\x12/\n" +
-	"\bmetadata\x18\x02 \x01(\v2\x13.grql.QueryMetadataR\bmetadata\x12\x14\n" +
-	"\x05error\x18\x03 \x01(\tR\x05error\"\x8c\x01\n" +
-	"\vQueryResult\x125\n" +
-	"\x06fields\x18\x01 \x03(\v2\x1d.grql.QueryResult.FieldsEntryR\x06fields\x1aF\n" +
+	"\x05value\x18\x02 \x01(\tR\x05value:\x028\x01\"\x89\x01\n" +
+	"\rQueryResponse\x12.\n" +
+	"\aresults\x18\x01 \x03(\v2\x14.grql.v1.QueryResultR\aresults\x122\n" +
+	"\bmetadata\x18\x02 \x01(\v2\x16.grql.v1.QueryMetadataR\bmetadata\x12\x14\n" +
+	"\x05error\x18\x03 \x01(\tR\x05error\"\x92\x01\n" +
+	"\vQueryResult\x128\n" +
+	"\x06fields\x18\x01 \x03(\v2 .grql.v1.QueryResult.FieldsEntryR\x06fields\x1aI\n" +
 	"\vFieldsEntry\x12\x10\n" +
-	"\x03key\x18\x01 \x01(\tR\x03key\x12!\n" +
-	"\x05value\x18\x02 \x01(\v2\v.grql.ValueR\x05value:\x028\x01\"\xbb\x01\n" +
+	"\x03key\x18\x01 \x01(\tR\x03key\x12$\n" +
+	"\x05value\x18\x02 \x01(\v2\x0e.grql.v1.ValueR\x05value:\x028\x01\"\xbb\x01\n" +
 	"\x05Value\x12#\n" +
 	"\fstring_value\x18\x01 \x01(\tH\x00R\vstringValue\x12\x1d\n" +
 	"\tint_value\x18\x02 \x01(\x03H\x00R\bintValue\x12!\n" +
@@ -474,53 +474,53 @@ const file_proto_query_proto_rawDesc = "" +
 	"bool_value\x18\x04 \x01(\bH\x00R\tboolValue\x12!\n" +
 	"\vbytes_value\x18\x05 \x01(\fH\x00R\n" +
 	"bytesValueB\a\n" +
-	"\x05value\"\x8c\x01\n" +
+	"\x05value\"\x8f\x01\n" +
 	"\rQueryMetadata\x12#\n" +
 	"\rrows_affected\x18\x01 \x01(\x03R\frowsAffected\x12*\n" +
-	"\x11execution_time_ms\x18\x02 \x01(\x03R\x0fexecutionTimeMs\x12*\n" +
-	"\acolumns\x18\x03 \x03(\v2\x10.grql.ColumnInfoR\acolumns\"4\n" +
+	"\x11execution_time_ms\x18\x02 \x01(\x03R\x0fexecutionTimeMs\x12-\n" +
+	"\acolumns\x18\x03 \x03(\v2\x13.grql.v1.ColumnInfoR\acolumns\"4\n" +
 	"\n" +
 	"ColumnInfo\x12\x12\n" +
 	"\x04name\x18\x01 \x01(\tR\x04name\x12\x12\n" +
-	"\x04type\x18\x02 \x01(\tR\x04type2\x7f\n" +
-	"\fQueryService\x127\n" +
-	"\fExecuteQuery\x12\x12.grql.QueryRequest\x1a\x13.grql.QueryResponse\x126\n" +
-	"\vStreamQuery\x12\x12.grql.QueryRequest\x1a\x11.grql.QueryResult0\x01B+Z)github.com/cedricziel/grql/internal/protob\x06proto3"
+	"\x04type\x18\x02 \x01(\tR\x04type2\x8b\x01\n" +
+	"\fQueryService\x12=\n" +
+	"\fExecuteQuery\x12\x15.grql.v1.QueryRequest\x1a\x16.grql.v1.QueryResponse\x12<\n" +
+	"\vStreamQuery\x12\x15.grql.v1.QueryRequest\x1a\x14.grql.v1.QueryResult0\x01B1Z/github.com/cedricziel/grql/proto/grql/v1;grqlv1b\x06proto3"
 
 var (
-	file_proto_query_proto_rawDescOnce sync.Once
-	file_proto_query_proto_rawDescData []byte
+	file_grql_v1_query_proto_rawDescOnce sync.Once
+	file_grql_v1_query_proto_rawDescData []byte
 )
 
-func file_proto_query_proto_rawDescGZIP() []byte {
-	file_proto_query_proto_rawDescOnce.Do(func() {
-		file_proto_query_proto_rawDescData = protoimpl.X.CompressGZIP(unsafe.Slice(unsafe.StringData(file_proto_query_proto_rawDesc), len(file_proto_query_proto_rawDesc)))
+func file_grql_v1_query_proto_rawDescGZIP() []byte {
+	file_grql_v1_query_proto_rawDescOnce.Do(func() {
+		file_grql_v1_query_proto_rawDescData = protoimpl.X.CompressGZIP(unsafe.Slice(unsafe.StringData(file_grql_v1_query_proto_rawDesc), len(file_grql_v1_query_proto_rawDesc)))
 	})
-	return file_proto_query_proto_rawDescData
+	return file_grql_v1_query_proto_rawDescData
 }
 
-var file_proto_query_proto_msgTypes = make([]protoimpl.MessageInfo, 8)
-var file_proto_query_proto_goTypes = []any{
-	(*QueryRequest)(nil),  // 0: grql.QueryRequest
-	(*QueryResponse)(nil), // 1: grql.QueryResponse
-	(*QueryResult)(nil),   // 2: grql.QueryResult
-	(*Value)(nil),         // 3: grql.Value
-	(*QueryMetadata)(nil), // 4: grql.QueryMetadata
-	(*ColumnInfo)(nil),    // 5: grql.ColumnInfo
-	nil,                   // 6: grql.QueryRequest.ParametersEntry
-	nil,                   // 7: grql.QueryResult.FieldsEntry
+var file_grql_v1_query_proto_msgTypes = make([]protoimpl.MessageInfo, 8)
+var file_grql_v1_query_proto_goTypes = []any{
+	(*QueryRequest)(nil),  // 0: grql.v1.QueryRequest
+	(*QueryResponse)(nil), // 1: grql.v1.QueryResponse
+	(*QueryResult)(nil),   // 2: grql.v1.QueryResult
+	(*Value)(nil),         // 3: grql.v1.Value
+	(*QueryMetadata)(nil), // 4: grql.v1.QueryMetadata
+	(*ColumnInfo)(nil),    // 5: grql.v1.ColumnInfo
+	nil,                   // 6: grql.v1.QueryRequest.ParametersEntry
+	nil,                   // 7: grql.v1.QueryResult.FieldsEntry
 }
-var file_proto_query_proto_depIdxs = []int32{
-	6, // 0: grql.QueryRequest.parameters:type_name -> grql.QueryRequest.ParametersEntry
-	2, // 1: grql.QueryResponse.results:type_name -> grql.QueryResult
-	4, // 2: grql.QueryResponse.metadata:type_name -> grql.QueryMetadata
-	7, // 3: grql.QueryResult.fields:type_name -> grql.QueryResult.FieldsEntry
-	5, // 4: grql.QueryMetadata.columns:type_name -> grql.ColumnInfo
-	3, // 5: grql.QueryResult.FieldsEntry.value:type_name -> grql.Value
-	0, // 6: grql.QueryService.ExecuteQuery:input_type -> grql.QueryRequest
-	0, // 7: grql.QueryService.StreamQuery:input_type -> grql.QueryRequest
-	1, // 8: grql.QueryService.ExecuteQuery:output_type -> grql.QueryResponse
-	2, // 9: grql.QueryService.StreamQuery:output_type -> grql.QueryResult
+var file_grql_v1_query_proto_depIdxs = []int32{
+	6, // 0: grql.v1.QueryRequest.parameters:type_name -> grql.v1.QueryRequest.ParametersEntry
+	2, // 1: grql.v1.QueryResponse.results:type_name -> grql.v1.QueryResult
+	4, // 2: grql.v1.QueryResponse.metadata:type_name -> grql.v1.QueryMetadata
+	7, // 3: grql.v1.QueryResult.fields:type_name -> grql.v1.QueryResult.FieldsEntry
+	5, // 4: grql.v1.QueryMetadata.columns:type_name -> grql.v1.ColumnInfo
+	3, // 5: grql.v1.QueryResult.FieldsEntry.value:type_name -> grql.v1.Value
+	0, // 6: grql.v1.QueryService.ExecuteQuery:input_type -> grql.v1.QueryRequest
+	0, // 7: grql.v1.QueryService.StreamQuery:input_type -> grql.v1.QueryRequest
+	1, // 8: grql.v1.QueryService.ExecuteQuery:output_type -> grql.v1.QueryResponse
+	2, // 9: grql.v1.QueryService.StreamQuery:output_type -> grql.v1.QueryResult
 	8, // [8:10] is the sub-list for method output_type
 	6, // [6:8] is the sub-list for method input_type
 	6, // [6:6] is the sub-list for extension type_name
@@ -528,12 +528,12 @@ var file_proto_query_proto_depIdxs = []int32{
 	0, // [0:6] is the sub-list for field type_name
 }
 
-func init() { file_proto_query_proto_init() }
-func file_proto_query_proto_init() {
-	if File_proto_query_proto != nil {
+func init() { file_grql_v1_query_proto_init() }
+func file_grql_v1_query_proto_init() {
+	if File_grql_v1_query_proto != nil {
 		return
 	}
-	file_proto_query_proto_msgTypes[3].OneofWrappers = []any{
+	file_grql_v1_query_proto_msgTypes[3].OneofWrappers = []any{
 		(*Value_StringValue)(nil),
 		(*Value_IntValue)(nil),
 		(*Value_FloatValue)(nil),
@@ -544,17 +544,17 @@ func file_proto_query_proto_init() {
 	out := protoimpl.TypeBuilder{
 		File: protoimpl.DescBuilder{
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
-			RawDescriptor: unsafe.Slice(unsafe.StringData(file_proto_query_proto_rawDesc), len(file_proto_query_proto_rawDesc)),
+			RawDescriptor: unsafe.Slice(unsafe.StringData(file_grql_v1_query_proto_rawDesc), len(file_grql_v1_query_proto_rawDesc)),
 			NumEnums:      0,
 			NumMessages:   8,
 			NumExtensions: 0,
 			NumServices:   1,
 		},
-		GoTypes:           file_proto_query_proto_goTypes,
-		DependencyIndexes: file_proto_query_proto_depIdxs,
-		MessageInfos:      file_proto_query_proto_msgTypes,
+		GoTypes:           file_grql_v1_query_proto_goTypes,
+		DependencyIndexes: file_grql_v1_query_proto_depIdxs,
+		MessageInfos:      file_grql_v1_query_proto_msgTypes,
 	}.Build()
-	File_proto_query_proto = out.File
-	file_proto_query_proto_goTypes = nil
-	file_proto_query_proto_depIdxs = nil
+	File_grql_v1_query_proto = out.File
+	file_grql_v1_query_proto_goTypes = nil
+	file_grql_v1_query_proto_depIdxs = nil
 }

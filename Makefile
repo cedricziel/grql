@@ -1,4 +1,4 @@
-.PHONY: proto clean build run
+.PHONY: proto clean build run plugin-install plugin-build plugin-dev plugin-backend plugin-frontend
 
 proto:
 	protoc --go_out=. --go_opt=paths=source_relative \
@@ -19,3 +19,24 @@ test:
 
 test-integration:
 	go test -v -tags=integration -timeout 10m ./...
+
+# Grafana Plugin Targets
+plugin-install:
+	cd grafana-plugin && npm install
+
+plugin-backend:
+	cd grafana-plugin && mage -v build:linuxARM64
+
+plugin-frontend:
+	cd grafana-plugin && npm run build
+
+plugin-build: plugin-frontend plugin-backend
+
+plugin-dev:
+	cd grafana-plugin && npm run dev
+
+plugin-up:
+	cd grafana-plugin && docker compose up
+
+plugin-down:
+	cd grafana-plugin && docker compose down

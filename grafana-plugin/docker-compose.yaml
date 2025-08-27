@@ -1,0 +1,39 @@
+services:
+  # gRQL Server
+  grql:
+    build:
+      context: ../
+      dockerfile: Dockerfile
+    container_name: grql-server
+    ports:
+      - 50051:50051
+    environment:
+      - MIMIR_URL=${MIMIR_URL:-http://mimir:9009}
+      - LOKI_URL=${LOKI_URL:-http://loki:3100}
+      - TEMPO_URL=${TEMPO_URL:-http://tempo:3200}
+      - TENANT_ID=${TENANT_ID:-}
+    networks:
+      - grql-network
+
+  # Grafana with plugin
+  grafana:
+    extends:
+      file: .config/docker-compose-base.yaml
+      service: grafana
+    depends_on:
+      - grql
+    networks:
+      - grql-network
+    environment:
+      NODE_ENV: development
+      GF_LOG_FILTERS: plugin.cedricziel-grql-datasource:debug
+      GF_LOG_LEVEL: debug
+      GF_DATAPROXY_LOGGING: 1
+      GF_PLUGINS_ALLOW_LOADING_UNSIGNED_PLUGINS: cedricziel-grql-datasource
+      # For automatic provisioning
+      GRQL_HOST: grql
+      GRQL_PORT: 50051
+
+networks:
+  grql-network:
+    driver: bridge

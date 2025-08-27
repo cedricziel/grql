@@ -153,6 +153,108 @@ grpcurl -plaintext localhost:50051 grql.QueryService/ExecuteQuery \
   -d '{"query": "SELECT * FROM metrics", "parameters": {"since": "1h", "limit": "10"}}'
 ```
 
+## Grafana Plugin
+
+GRQL includes a Grafana datasource plugin for querying through Grafana dashboards.
+
+### Plugin Features
+
+- Native Grafana datasource integration
+- SQL query editor with syntax highlighting
+- Support for both table and time series visualizations
+- Secure TLS connection support
+- Health check validation
+
+### Building the Plugin
+
+```bash
+# Install plugin dependencies
+make plugin-install
+
+# Build frontend and backend
+make plugin-build
+
+# Or build components separately
+make plugin-frontend  # Build TypeScript/React frontend
+make plugin-backend   # Build Go backend
+```
+
+### Running with Docker Compose
+
+The easiest way to develop and test the plugin is using Docker Compose:
+
+```bash
+# Start Grafana with the plugin and grql server
+make plugin-up
+
+# Stop all containers
+make plugin-down
+
+# View logs
+make plugin-logs
+```
+
+This will start:
+- GRQL server on port 50051
+- Grafana on port 3000 with the plugin pre-installed
+
+### Configuring the Datasource
+
+1. Open Grafana at http://localhost:3000 (default credentials: admin/admin)
+2. Navigate to Configuration → Data Sources
+3. Add a new "GRQL" datasource
+4. Configure the connection:
+   - Host: `grql` (when running in Docker) or `localhost` (when running locally)
+   - Port: `50051`
+   - Enable TLS if your grql server uses encryption
+
+### Using the Plugin
+
+Once configured, you can:
+
+1. Create a new dashboard
+2. Add a panel and select the GRQL datasource
+3. Write SQL queries in the query editor:
+   ```sql
+   SELECT avg(cpu_usage), max(memory_usage) FROM metrics 
+   WHERE service="api" GROUP BY instance SINCE 1 hour ago
+   ```
+4. Choose visualization format:
+   - **Table**: For tabular data display
+   - **Time Series**: For graphing metrics over time
+
+### Plugin Development
+
+The plugin is located in the `grafana-plugin/` directory:
+
+```bash
+grafana-plugin/
+├── src/                # TypeScript/React frontend
+│   ├── components/     # UI components
+│   ├── datasource.ts   # Datasource class
+│   └── types.ts        # TypeScript definitions
+├── pkg/                # Go backend
+│   └── plugin/         # Backend plugin implementation
+├── docker-compose.yaml # Development environment
+└── package.json        # Node dependencies
+```
+
+For plugin development:
+
+```bash
+cd grafana-plugin
+
+# Frontend development with hot reload
+npm run dev
+
+# Backend development
+mage -v build:debug
+
+# Run tests
+npm test
+go test ./pkg/...
+```
+
 ## Development
 
 ```bash

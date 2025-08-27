@@ -567,12 +567,12 @@ func (p *Planner) findBackend(node PlanNode) Backend {
 	if node == nil {
 		return ""
 	}
-	
+
 	// Check if this is a scan node
 	if scanNode, ok := node.(*ScanNode); ok {
 		return scanNode.Backend
 	}
-	
+
 	// Recursively check children
 	children := node.Children()
 	for _, child := range children {
@@ -580,7 +580,7 @@ func (p *Planner) findBackend(node PlanNode) Backend {
 			return backend
 		}
 	}
-	
+
 	return ""
 }
 

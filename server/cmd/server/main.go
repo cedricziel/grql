@@ -9,8 +9,8 @@ import (
 	"os/signal"
 	"syscall"
 
-	"github.com/cedricziel/grql/server/internal/server"
 	pb "github.com/cedricziel/grql/server/internal/proto/grql/v1"
+	"github.com/cedricziel/grql/server/internal/server"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/reflection"
 )

@@ -9,7 +9,7 @@ import (
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials"
 	"google.golang.org/grpc/credentials/insecure"
-	
+
 	pb "github.com/cedricziel/grql/grafana-plugin/internal/proto/grql/v1"
 	"github.com/cedricziel/grql/grafana-plugin/pkg/models"
 )
@@ -31,14 +31,14 @@ func NewGrqlClient(settings *models.PluginSettings) (*GrqlClient, error) {
 		port = 50051
 	}
 	address := fmt.Sprintf("%s:%d", host, port)
-	
+
 	var opts []grpc.DialOption
-	
+
 	if settings.UseTLS {
 		tlsConfig := &tls.Config{
 			InsecureSkipVerify: settings.InsecureSkipVerify,
 		}
-		
+
 		// Add client certificates if provided
 		if settings.Secrets != nil && settings.Secrets.TLSCert != "" && settings.Secrets.TLSKey != "" {
 			cert, err := tls.X509KeyPair([]byte(settings.Secrets.TLSCert), []byte(settings.Secrets.TLSKey))
@@ -47,24 +47,24 @@ func NewGrqlClient(settings *models.PluginSettings) (*GrqlClient, error) {
 			}
 			tlsConfig.Certificates = []tls.Certificate{cert}
 		}
-		
+
 		creds := credentials.NewTLS(tlsConfig)
 		opts = append(opts, grpc.WithTransportCredentials(creds))
 	} else {
 		opts = append(opts, grpc.WithTransportCredentials(insecure.NewCredentials()))
 	}
-	
+
 	// Set reasonable timeout
 	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 	defer cancel()
-	
+
 	conn, err := grpc.DialContext(ctx, address, opts...)
 	if err != nil {
 		return nil, fmt.Errorf("failed to connect to grql server: %w", err)
 	}
-	
+
 	client := pb.NewQueryServiceClient(conn)
-	
+
 	return &GrqlClient{
 		conn:   conn,
 		client: client,
@@ -77,7 +77,7 @@ func (c *GrqlClient) ExecuteQuery(ctx context.Context, query string, params map[
 		Query:      query,
 		Parameters: params,
 	}
-	
+
 	return c.client.ExecuteQuery(ctx, req)
 }
 
@@ -87,7 +87,7 @@ func (c *GrqlClient) StreamQuery(ctx context.Context, query string, params map[s
 		Query:      query,
 		Parameters: params,
 	}
-	
+
 	return c.client.StreamQuery(ctx, req)
 }
 

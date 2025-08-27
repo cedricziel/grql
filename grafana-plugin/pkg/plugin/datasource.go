@@ -10,7 +10,7 @@ import (
 	"github.com/grafana/grafana-plugin-sdk-go/backend"
 	"github.com/grafana/grafana-plugin-sdk-go/backend/instancemgmt"
 	"github.com/grafana/grafana-plugin-sdk-go/data"
-	
+
 	pb "github.com/cedricziel/grql/grafana-plugin/internal/proto/grql/v1"
 	"github.com/cedricziel/grql/grafana-plugin/pkg/models"
 )
@@ -32,17 +32,17 @@ func NewDatasource(ctx context.Context, settings backend.DataSourceInstanceSetti
 	if err != nil {
 		return nil, fmt.Errorf("failed to load settings: %w", err)
 	}
-	
+
 	// Log the settings to debug
 	backend.Logger.Debug("Datasource settings", "host", config.Host, "port", config.Port)
-	
+
 	client, err := NewGrqlClient(config)
 	if err != nil {
 		return nil, fmt.Errorf("failed to create grql client: %w", err)
 	}
-	
+
 	return &Datasource{
-		client: client,
+		client:   client,
 		settings: config,
 	}, nil
 }
@@ -61,7 +61,7 @@ type Datasource struct {
 func (d *Datasource) Dispose() {
 	d.mu.Lock()
 	defer d.mu.Unlock()
-	
+
 	if d.client != nil {
 		_ = d.client.Close()
 		d.client = nil
@@ -102,21 +102,21 @@ func (d *Datasource) query(ctx context.Context, pCtx backend.PluginContext, quer
 	if err != nil {
 		return backend.ErrDataResponse(backend.StatusBadRequest, fmt.Sprintf("json unmarshal: %v", err.Error()))
 	}
-	
+
 	if qm.RawQuery == "" {
 		return backend.ErrDataResponse(backend.StatusBadRequest, "query is empty")
 	}
-	
+
 	// Execute the query against grql server
 	grqlResp, err := d.client.ExecuteQuery(ctx, qm.RawQuery, nil)
 	if err != nil {
 		return backend.ErrDataResponse(backend.StatusInternal, fmt.Sprintf("query execution failed: %v", err.Error()))
 	}
-	
+
 	if grqlResp.Error != "" {
 		return backend.ErrDataResponse(backend.StatusInternal, grqlResp.Error)
 	}
-	
+
 	// Convert grql response to Grafana data frame
 	frame, err := d.convertToDataFrame(grqlResp, qm.Format, query.TimeRange)
 	if err != nil {
@@ -133,17 +133,17 @@ func (d *Datasource) convertToDataFrame(resp *pb.QueryResponse, format string, t
 	if resp == nil || resp.Metadata == nil {
 		return nil, fmt.Errorf("invalid response: missing metadata")
 	}
-	
+
 	frame := data.NewFrame("response")
-	
+
 	// Add metadata (note: Query field doesn't exist in proto)
 	frame.Meta = &data.FrameMeta{}
-	
+
 	// If no results, return empty frame
 	if len(resp.Results) == 0 {
 		return frame, nil
 	}
-	
+
 	// Get column info
 	columns := resp.Metadata.Columns
 	if len(columns) == 0 {
@@ -159,13 +159,13 @@ func (d *Datasource) convertToDataFrame(resp *pb.QueryResponse, format string, t
 			return frame, nil
 		}
 	}
-	
+
 	// Create fields based on columns
 	fields := make([]*data.Field, len(columns))
 	for i, col := range columns {
 		// Initialize field values slice
 		var values interface{}
-		
+
 		// Determine field type based on column type
 		switch col.Type {
 		case "INT64", "INTEGER", "INT":
@@ -179,10 +179,10 @@ func (d *Datasource) convertToDataFrame(resp *pb.QueryResponse, format string, t
 		default:
 			values = make([]*string, 0, len(resp.Results))
 		}
-		
+
 		fields[i] = data.NewField(col.Name, nil, values)
 	}
-	
+
 	// Populate field values from results (using Fields map structure)
 	for _, row := range resp.Results {
 		for i, col := range columns {
@@ -203,7 +203,7 @@ func (d *Datasource) convertToDataFrame(resp *pb.QueryResponse, format string, t
 				}
 				continue
 			}
-			
+
 			// Append the actual value based on its type
 			switch v := val.Value.(type) {
 			case *pb.Value_StringValue:
@@ -232,16 +232,16 @@ func (d *Datasource) convertToDataFrame(resp *pb.QueryResponse, format string, t
 			}
 		}
 	}
-	
+
 	frame.Fields = fields
-	
+
 	// Set preferred visualization based on format
 	if format == "time_series" {
 		frame.Meta.PreferredVisualization = data.VisTypeGraph
 	} else {
 		frame.Meta.PreferredVisualization = data.VisTypeTable
 	}
-	
+
 	return frame, nil
 }
 
@@ -252,7 +252,7 @@ func (d *Datasource) convertToDataFrame(resp *pb.QueryResponse, format string, t
 func (d *Datasource) CheckHealth(ctx context.Context, req *backend.CheckHealthRequest) (*backend.CheckHealthResult, error) {
 	// Try to execute a simple query to test connectivity
 	testQuery := "SELECT 1"
-	
+
 	resp, err := d.client.ExecuteQuery(ctx, testQuery, nil)
 	if err != nil {
 		return &backend.CheckHealthResult{
@@ -260,14 +260,14 @@ func (d *Datasource) CheckHealth(ctx context.Context, req *backend.CheckHealthRe
 			Message: fmt.Sprintf("Failed to connect to grql server: %v", err),
 		}, nil
 	}
-	
+
 	if resp.Error != "" {
 		return &backend.CheckHealthResult{
 			Status:  backend.HealthStatusError,
 			Message: fmt.Sprintf("grql server returned error: %s", resp.Error),
 		}, nil
 	}
-	
+
 	return &backend.CheckHealthResult{
 		Status:  backend.HealthStatusOk,
 		Message: "Successfully connected to grql server",

@@ -26,7 +26,7 @@ func LoadPluginSettings(source backend.DataSourceInstanceSettings) (*PluginSetti
 		Host: "localhost",
 		Port: 50051,
 	}
-	
+
 	if len(source.JSONData) > 0 {
 		err := json.Unmarshal(source.JSONData, &settings)
 		if err != nil {

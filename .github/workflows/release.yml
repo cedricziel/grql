@@ -25,9 +25,14 @@ jobs:
         with:
           go-version: ${{ env.GO_VERSION }}
           cache: true
+          cache-dependency-path: |
+            server/go.sum
+            grafana-plugin/go.sum
       
       - name: Run tests
-        run: make test
+        run: |
+          cd server && go test ./...
+          cd ../grafana-plugin && go test ./pkg/...
 
   release:
     name: Release
@@ -42,6 +47,7 @@ jobs:
         with:
           go-version: ${{ env.GO_VERSION }}
           cache: true
+          cache-dependency-path: server/go.sum
       
       - name: Install GoReleaser
         uses: goreleaser/goreleaser-action@v6
@@ -89,7 +95,8 @@ jobs:
       - name: Build and push Docker image
         uses: docker/build-push-action@v6
         with:
-          context: .
+          context: ./server
+          file: ./server/Dockerfile
           platforms: linux/amd64,linux/arm64
           push: true
           tags: ${{ steps.meta.outputs.tags }}

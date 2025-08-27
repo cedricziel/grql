@@ -2,13 +2,14 @@ version: 2
 
 before:
   hooks:
-    - go mod tidy
-    - go generate ./...
+    - cd server && go mod tidy
+    - cd server && go generate ./...
 
 builds:
   - id: grql
-    main: ./cmd/server
+    main: ./server/cmd/server
     binary: grql
+    dir: .
     env:
       - CGO_ENABLED=0
     goos:
@@ -105,7 +106,8 @@ dockers:
       - "ghcr.io/cedricziel/{{ .ProjectName }}:v{{ .Major }}"
       - "ghcr.io/cedricziel/{{ .ProjectName }}:v{{ .Major }}.{{ .Minor }}"
       - "ghcr.io/cedricziel/{{ .ProjectName }}:latest"
-    dockerfile: Dockerfile
+    dockerfile: server/Dockerfile
+    use: buildx
     build_flag_templates:
       - "--pull"
       - "--label=org.opencontainers.image.created={{.Date}}"

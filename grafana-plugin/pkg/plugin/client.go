@@ -9,8 +9,8 @@ import (
 	"google.golang.org/grpc/credentials"
 	"google.golang.org/grpc/credentials/insecure"
 
-	pb "github.com/cedricziel/grql/pkg/grql/v1"
 	"github.com/cedricziel/grql/grafana-plugin/pkg/models"
+	pb "github.com/cedricziel/grql/pkg/grql/v1"
 )
 
 // GrqlClient manages the gRPC connection to the grql server

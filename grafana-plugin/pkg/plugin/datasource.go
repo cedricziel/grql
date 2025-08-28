@@ -11,8 +11,8 @@ import (
 	"github.com/grafana/grafana-plugin-sdk-go/backend/instancemgmt"
 	"github.com/grafana/grafana-plugin-sdk-go/data"
 
-	pb "github.com/cedricziel/grql/pkg/grql/v1"
 	"github.com/cedricziel/grql/grafana-plugin/pkg/models"
+	pb "github.com/cedricziel/grql/pkg/grql/v1"
 )
 
 // Make sure Datasource implements required interfaces. This is important to do
@@ -138,7 +138,7 @@ func (d *Datasource) convertToDataFrame(resp *pb.QueryResponse, format string, t
 
 	// Add metadata
 	frame.Meta = &data.FrameMeta{}
-	
+
 	// Set preferred visualization based on data type
 	if resp.Metadata.DataType == pb.DataType_TIME_SERIES {
 		frame.Meta.PreferredVisualization = data.VisTypeGraph
@@ -192,14 +192,14 @@ func (d *Datasource) convertToDataFrame(resp *pb.QueryResponse, format string, t
 		}
 
 		fields[i] = data.NewField(col.Name, nil, values)
-		
+
 		// Apply field unit from metadata if available
 		if unit, ok := resp.Metadata.FieldUnits[col.Name]; ok && unit != "" {
 			fields[i].Config = &data.FieldConfig{
 				Unit: unit,
 			}
 		}
-		
+
 		// Mark time fields if identified in metadata
 		for _, timeField := range resp.Metadata.TimeFields {
 			if col.Name == timeField {

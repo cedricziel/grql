@@ -4,9 +4,9 @@ import (
 	"testing"
 	"time"
 
+	pb "github.com/cedricziel/grql/pkg/grql/v1"
 	"github.com/grafana/grafana-plugin-sdk-go/backend"
 	"github.com/grafana/grafana-plugin-sdk-go/data"
-	pb "github.com/cedricziel/grql/pkg/grql/v1"
 )
 
 func TestConvertToDataFrame_WithMetadata(t *testing.T) {
@@ -203,7 +203,7 @@ func TestConvertToDataFrame_EmptyResponse(t *testing.T) {
 		response *pb.QueryResponse
 	}{
 		{
-			name: "nil response",
+			name:     "nil response",
 			response: nil,
 		},
 		{
@@ -343,10 +343,10 @@ func TestConvertToDataFrame_FieldUnitDetection(t *testing.T) {
 		Results: []*pb.QueryResult{
 			{
 				Fields: map[string]*pb.Value{
-					"cpu_usage":       {Value: &pb.Value_FloatValue{FloatValue: 75.5}},
-					"memory_bytes":    {Value: &pb.Value_IntValue{IntValue: 1048576}},
-					"response_time":   {Value: &pb.Value_FloatValue{FloatValue: 250.5}},
-					"error_rate":      {Value: &pb.Value_FloatValue{FloatValue: 0.05}},
+					"cpu_usage":          {Value: &pb.Value_FloatValue{FloatValue: 75.5}},
+					"memory_bytes":       {Value: &pb.Value_IntValue{IntValue: 1048576}},
+					"response_time":      {Value: &pb.Value_FloatValue{FloatValue: 250.5}},
+					"error_rate":         {Value: &pb.Value_FloatValue{FloatValue: 0.05}},
 					"network_throughput": {Value: &pb.Value_IntValue{IntValue: 1000000}},
 				},
 			},

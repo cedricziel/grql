@@ -4,7 +4,6 @@ import (
 	"context"
 	"crypto/tls"
 	"fmt"
-	"time"
 
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials"
@@ -54,13 +53,9 @@ func NewGrqlClient(settings *models.PluginSettings) (*GrqlClient, error) {
 		opts = append(opts, grpc.WithTransportCredentials(insecure.NewCredentials()))
 	}
 
-	// Set reasonable timeout
-	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
-	defer cancel()
-
-	conn, err := grpc.DialContext(ctx, address, opts...)
+	conn, err := grpc.NewClient(address, opts...)
 	if err != nil {
-		return nil, fmt.Errorf("failed to connect to grql server: %w", err)
+		return nil, fmt.Errorf("failed to create grql client: %w", err)
 	}
 
 	client := pb.NewQueryServiceClient(conn)

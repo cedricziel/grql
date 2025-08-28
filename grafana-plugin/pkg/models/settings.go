@@ -8,11 +8,11 @@ import (
 )
 
 type PluginSettings struct {
+	Secrets            *SecretPluginSettings `json:"-"`
 	Host               string                `json:"host"`
 	Port               int                   `json:"port"`
-	UseTLS             bool                  `json:"useTLS"`
 	InsecureSkipVerify bool                  `json:"insecureSkipVerify"`
-	Secrets            *SecretPluginSettings `json:"-"`
+	UseTLS             bool                  `json:"useTLS"`
 }
 
 type SecretPluginSettings struct {

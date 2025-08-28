@@ -19,6 +19,7 @@ message QueryRequest {
   map<string, string> parameters = 2;
   int32 limit = 3;
   int32 offset = 4;
+  ResponseFormat response_format = 5;  // Optional: desired response format
 }
 
 // Response message containing query results
@@ -44,11 +45,31 @@ message Value {
   }
 }
 
+// Data type of the query response
+enum DataType {
+  TABLE = 0;        // Generic tabular data
+  TIME_SERIES = 1;  // Has time field + numeric values
+  LOGS = 2;         // Log entries with timestamp
+  TRACES = 3;       // Distributed trace data
+}
+
+// Response format options
+enum ResponseFormat {
+  PROTOBUF = 0;     // Default protobuf format
+  ARROW = 1;        // Apache Arrow format (future)
+}
+
 // Metadata about query execution
 message QueryMetadata {
   int64 rows_affected = 1;
   int64 execution_time_ms = 2;
   repeated ColumnInfo columns = 3;
+  
+  // Enhanced metadata fields
+  DataType data_type = 4;                // Type of data returned
+  repeated string group_by_fields = 5;   // Fields used in GROUP BY
+  repeated string time_fields = 6;       // Fields containing time data
+  map<string, string> field_units = 7;   // Units per field (e.g., "cpu" -> "percent")
 }
 
 // Column information

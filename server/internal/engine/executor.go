@@ -3,6 +3,7 @@ package engine
 import (
 	"context"
 	"fmt"
+	"strings"
 	"sync"
 	"time"
 
@@ -107,6 +108,11 @@ func (e *Executor) ExecuteQuery(ctx context.Context, sqlQuery string, params map
 
 	// Convert to protobuf response
 	response := e.convertToProtoResponse(resultSet, time.Since(startTime))
+	
+	// Add GROUP BY fields (facets) to metadata if present
+	if len(query.Facets) > 0 {
+		response.Metadata.GroupByFields = query.Facets
+	}
 
 	// Cache the result
 	e.cache.Set(cacheKey, response)
@@ -408,11 +414,22 @@ func (e *Executor) convertToProtoResponse(resultSet ResultSet, executionTime tim
 
 	// Build column info
 	columnInfo := make([]*pb.ColumnInfo, 0, len(schema.Columns))
+	timeFields := make([]string, 0)
+	fieldUnits := make(map[string]string)
+	
 	for _, col := range schema.Columns {
 		columnInfo = append(columnInfo, &pb.ColumnInfo{
 			Name: col.Name,
 			Type: string(col.Type),
 		})
+		
+		// Detect time fields
+		if col.Type == DataTypeTimestamp || col.Name == "timestamp" || col.Name == "time" {
+			timeFields = append(timeFields, col.Name)
+		}
+		
+		// Add field units based on common patterns
+		fieldUnits[col.Name] = e.detectFieldUnit(col.Name)
 	}
 
 	return &pb.QueryResponse{
@@ -421,6 +438,9 @@ func (e *Executor) convertToProtoResponse(resultSet ResultSet, executionTime tim
 			RowsAffected:    int64(len(results)),
 			ExecutionTimeMs: executionTime.Milliseconds(),
 			Columns:         columnInfo,
+			DataType:        e.detectDataType(schema, timeFields),
+			TimeFields:      timeFields,
+			FieldUnits:      fieldUnits,
 		},
 	}
 }
@@ -558,4 +578,76 @@ func (c *QueryCache) Set(key string, result *pb.QueryResponse) {
 		result:    result,
 		timestamp: time.Now(),
 	}
+}
+
+// detectDataType determines the data type based on schema and query characteristics
+func (e *Executor) detectDataType(schema Schema, timeFields []string) pb.DataType {
+	// Check if we have time fields and numeric values (time series)
+	hasTime := len(timeFields) > 0
+	hasNumeric := false
+	
+	for _, col := range schema.Columns {
+		switch col.Type {
+		case DataTypeInt, DataTypeFloat:
+			hasNumeric = true
+		}
+	}
+	
+	if hasTime && hasNumeric {
+		return pb.DataType_TIME_SERIES
+	}
+	
+	// Check for log-like patterns
+	for _, col := range schema.Columns {
+		if col.Name == "level" || col.Name == "message" || col.Name == "log" {
+			return pb.DataType_LOGS
+		}
+	}
+	
+	// Check for trace-like patterns  
+	for _, col := range schema.Columns {
+		if col.Name == "trace_id" || col.Name == "span_id" || col.Name == "duration" {
+			return pb.DataType_TRACES
+		}
+	}
+	
+	// Default to table
+	return pb.DataType_TABLE
+}
+
+// detectFieldUnit detects the unit for a field based on common naming patterns
+func (e *Executor) detectFieldUnit(fieldName string) string {
+	// Common metric patterns and their units (order matters - more specific patterns first)
+	patterns := []struct {
+		pattern string
+		unit    string
+	}{
+		{"throughput", "Bps"},
+		{"cpu", "percent"},
+		{"memory", "bytes"},
+		{"disk", "bytes"},
+		{"network", "bytes"},
+		{"latency", "milliseconds"},
+		{"duration", "milliseconds"},
+		{"time", "milliseconds"},
+		{"count", "short"},
+		{"rate", "ops"},
+		{"temperature", "celsius"},
+		{"percentage", "percent"},
+		{"percent", "percent"},
+		{"bytes", "bytes"},
+		{"seconds", "seconds"},
+		{"ms", "milliseconds"},
+	}
+	
+	// Check for patterns in order
+	lowerName := strings.ToLower(fieldName)
+	for _, p := range patterns {
+		if strings.Contains(lowerName, p.pattern) {
+			return p.unit
+		}
+	}
+	
+	// No unit detected
+	return ""
 }

@@ -136,8 +136,19 @@ func (d *Datasource) convertToDataFrame(resp *pb.QueryResponse, format string, t
 
 	frame := data.NewFrame("response")
 
-	// Add metadata (note: Query field doesn't exist in proto)
+	// Add metadata
 	frame.Meta = &data.FrameMeta{}
+	
+	// Set preferred visualization based on data type
+	if resp.Metadata.DataType == pb.DataType_TIME_SERIES {
+		frame.Meta.PreferredVisualization = data.VisTypeGraph
+	} else if resp.Metadata.DataType == pb.DataType_LOGS {
+		frame.Meta.PreferredVisualization = data.VisTypeLogs
+	} else if resp.Metadata.DataType == pb.DataType_TRACES {
+		frame.Meta.PreferredVisualization = data.VisTypeTrace
+	} else {
+		frame.Meta.PreferredVisualization = data.VisTypeTable
+	}
 
 	// If no results, return empty frame
 	if len(resp.Results) == 0 {
@@ -181,6 +192,23 @@ func (d *Datasource) convertToDataFrame(resp *pb.QueryResponse, format string, t
 		}
 
 		fields[i] = data.NewField(col.Name, nil, values)
+		
+		// Apply field unit from metadata if available
+		if unit, ok := resp.Metadata.FieldUnits[col.Name]; ok && unit != "" {
+			fields[i].Config = &data.FieldConfig{
+				Unit: unit,
+			}
+		}
+		
+		// Mark time fields if identified in metadata
+		for _, timeField := range resp.Metadata.TimeFields {
+			if col.Name == timeField {
+				fields[i].Config = &data.FieldConfig{
+					Interval: 1000, // Default to 1 second interval
+				}
+				break
+			}
+		}
 	}
 
 	// Populate field values from results (using Fields map structure)
@@ -234,13 +262,6 @@ func (d *Datasource) convertToDataFrame(resp *pb.QueryResponse, format string, t
 	}
 
 	frame.Fields = fields
-
-	// Set preferred visualization based on format
-	if format == "time_series" {
-		frame.Meta.PreferredVisualization = data.VisTypeGraph
-	} else {
-		frame.Meta.PreferredVisualization = data.VisTypeTable
-	}
 
 	return frame, nil
 }

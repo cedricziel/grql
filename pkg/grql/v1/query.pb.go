@@ -21,15 +21,116 @@ const (
 	_ = protoimpl.EnforceVersion(protoimpl.MaxVersion - 20)
 )
 
+// Data type of the query response
+type DataType int32
+
+const (
+	DataType_TABLE       DataType = 0 // Generic tabular data
+	DataType_TIME_SERIES DataType = 1 // Has time field + numeric values
+	DataType_LOGS        DataType = 2 // Log entries with timestamp
+	DataType_TRACES      DataType = 3 // Distributed trace data
+)
+
+// Enum value maps for DataType.
+var (
+	DataType_name = map[int32]string{
+		0: "TABLE",
+		1: "TIME_SERIES",
+		2: "LOGS",
+		3: "TRACES",
+	}
+	DataType_value = map[string]int32{
+		"TABLE":       0,
+		"TIME_SERIES": 1,
+		"LOGS":        2,
+		"TRACES":      3,
+	}
+)
+
+func (x DataType) Enum() *DataType {
+	p := new(DataType)
+	*p = x
+	return p
+}
+
+func (x DataType) String() string {
+	return protoimpl.X.EnumStringOf(x.Descriptor(), protoreflect.EnumNumber(x))
+}
+
+func (DataType) Descriptor() protoreflect.EnumDescriptor {
+	return file_grql_v1_query_proto_enumTypes[0].Descriptor()
+}
+
+func (DataType) Type() protoreflect.EnumType {
+	return &file_grql_v1_query_proto_enumTypes[0]
+}
+
+func (x DataType) Number() protoreflect.EnumNumber {
+	return protoreflect.EnumNumber(x)
+}
+
+// Deprecated: Use DataType.Descriptor instead.
+func (DataType) EnumDescriptor() ([]byte, []int) {
+	return file_grql_v1_query_proto_rawDescGZIP(), []int{0}
+}
+
+// Response format options
+type ResponseFormat int32
+
+const (
+	ResponseFormat_PROTOBUF ResponseFormat = 0 // Default protobuf format
+	ResponseFormat_ARROW    ResponseFormat = 1 // Apache Arrow format (future)
+)
+
+// Enum value maps for ResponseFormat.
+var (
+	ResponseFormat_name = map[int32]string{
+		0: "PROTOBUF",
+		1: "ARROW",
+	}
+	ResponseFormat_value = map[string]int32{
+		"PROTOBUF": 0,
+		"ARROW":    1,
+	}
+)
+
+func (x ResponseFormat) Enum() *ResponseFormat {
+	p := new(ResponseFormat)
+	*p = x
+	return p
+}
+
+func (x ResponseFormat) String() string {
+	return protoimpl.X.EnumStringOf(x.Descriptor(), protoreflect.EnumNumber(x))
+}
+
+func (ResponseFormat) Descriptor() protoreflect.EnumDescriptor {
+	return file_grql_v1_query_proto_enumTypes[1].Descriptor()
+}
+
+func (ResponseFormat) Type() protoreflect.EnumType {
+	return &file_grql_v1_query_proto_enumTypes[1]
+}
+
+func (x ResponseFormat) Number() protoreflect.EnumNumber {
+	return protoreflect.EnumNumber(x)
+}
+
+// Deprecated: Use ResponseFormat.Descriptor instead.
+func (ResponseFormat) EnumDescriptor() ([]byte, []int) {
+	return file_grql_v1_query_proto_rawDescGZIP(), []int{1}
+}
+
 // Request message containing the SQL-like query
 type QueryRequest struct {
-	state         protoimpl.MessageState `protogen:"open.v1"`
-	Query         string                 `protobuf:"bytes,1,opt,name=query,proto3" json:"query,omitempty"`
-	Parameters    map[string]string      `protobuf:"bytes,2,rep,name=parameters,proto3" json:"parameters,omitempty" protobuf_key:"bytes,1,opt,name=key" protobuf_val:"bytes,2,opt,name=value"`
-	Limit         int32                  `protobuf:"varint,3,opt,name=limit,proto3" json:"limit,omitempty"`
-	Offset        int32                  `protobuf:"varint,4,opt,name=offset,proto3" json:"offset,omitempty"`
-	unknownFields protoimpl.UnknownFields
-	sizeCache     protoimpl.SizeCache
+	state          protoimpl.MessageState `protogen:"open.v1"`
+	Query          string                 `protobuf:"bytes,1,opt,name=query,proto3" json:"query,omitempty"`
+	Parameters     map[string]string      `protobuf:"bytes,2,rep,name=parameters,proto3" json:"parameters,omitempty" protobuf_key:"bytes,1,opt,name=key" protobuf_val:"bytes,2,opt,name=value"`
+	Limit          int32                  `protobuf:"varint,3,opt,name=limit,proto3" json:"limit,omitempty"`
+	Offset         int32                  `protobuf:"varint,4,opt,name=offset,proto3" json:"offset,omitempty"`
+	ResponseFormat ResponseFormat         `protobuf:"varint,5,opt,name=response_format,json=responseFormat,proto3,enum=grql.v1.ResponseFormat" json:"response_format,omitempty"` // Optional: desired response format
+	unknownFields  protoimpl.UnknownFields
+	sizeCache      protoimpl.SizeCache
 }
 
 func (x *QueryRequest) Reset() {
@@ -88,6 +189,13 @@ func (x *QueryRequest) GetOffset() int32 {
 		return x.Offset
 	}
 	return 0
+}
+
+func (x *QueryRequest) GetResponseFormat() ResponseFormat {
+	if x != nil {
+		return x.ResponseFormat
+	}
+	return ResponseFormat_PROTOBUF
 }
 
 // Response message containing query results
@@ -333,8 +441,13 @@ type QueryMetadata struct {
 	RowsAffected    int64                  `protobuf:"varint,1,opt,name=rows_affected,json=rowsAffected,proto3" json:"rows_affected,omitempty"`
 	ExecutionTimeMs int64                  `protobuf:"varint,2,opt,name=execution_time_ms,json=executionTimeMs,proto3" json:"execution_time_ms,omitempty"`
 	Columns         []*ColumnInfo          `protobuf:"bytes,3,rep,name=columns,proto3" json:"columns,omitempty"`
-	unknownFields   protoimpl.UnknownFields
-	sizeCache       protoimpl.SizeCache
+	// Enhanced metadata fields
+	DataType      DataType          `protobuf:"varint,4,opt,name=data_type,json=dataType,proto3,enum=grql.v1.DataType" json:"data_type,omitempty"`                                                          // Type of data returned
+	GroupByFields []string          `protobuf:"bytes,5,rep,name=group_by_fields,json=groupByFields,proto3" json:"group_by_fields,omitempty"`                                                                // Fields used in GROUP BY
+	TimeFields    []string          `protobuf:"bytes,6,rep,name=time_fields,json=timeFields,proto3" json:"time_fields,omitempty"`                                                                           // Fields containing time data
+	FieldUnits    map[string]string `protobuf:"bytes,7,rep,name=field_units,json=fieldUnits,proto3" json:"field_units,omitempty" protobuf_key:"bytes,1,opt,name=key" protobuf_val:"bytes,2,opt,name=value"` // Units per field (e.g., "cpu" -> "percent")
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
 }
 
 func (x *QueryMetadata) Reset() {
@@ -384,6 +497,34 @@ func (x *QueryMetadata) GetExecutionTimeMs() int64 {
 func (x *QueryMetadata) GetColumns() []*ColumnInfo {
 	if x != nil {
 		return x.Columns
+	}
+	return nil
+}
+
+func (x *QueryMetadata) GetDataType() DataType {
+	if x != nil {
+		return x.DataType
+	}
+	return DataType_TABLE
+}
+
+func (x *QueryMetadata) GetGroupByFields() []string {
+	if x != nil {
+		return x.GroupByFields
+	}
+	return nil
+}
+
+func (x *QueryMetadata) GetTimeFields() []string {
+	if x != nil {
+		return x.TimeFields
+	}
+	return nil
+}
+
+func (x *QueryMetadata) GetFieldUnits() map[string]string {
+	if x != nil {
+		return x.FieldUnits
 	}
 	return nil
 }
@@ -445,14 +586,15 @@ var File_grql_v1_query_proto protoreflect.FileDescriptor
 
 const file_grql_v1_query_proto_rawDesc = "" +
 	"\n" +
-	"\x13grql/v1/query.proto\x12\agrql.v1\"\xd8\x01\n" +
+	"\x13grql/v1/query.proto\x12\agrql.v1\"\x9a\x02\n" +
 	"\fQueryRequest\x12\x14\n" +
 	"\x05query\x18\x01 \x01(\tR\x05query\x12E\n" +
 	"\n" +
 	"parameters\x18\x02 \x03(\v2%.grql.v1.QueryRequest.ParametersEntryR\n" +
 	"parameters\x12\x14\n" +
 	"\x05limit\x18\x03 \x01(\x05R\x05limit\x12\x16\n" +
-	"\x06offset\x18\x04 \x01(\x05R\x06offset\x1a=\n" +
+	"\x06offset\x18\x04 \x01(\x05R\x06offset\x12@\n" +
+	"\x0fresponse_format\x18\x05 \x01(\x0e2\x17.grql.v1.ResponseFormatR\x0eresponseFormat\x1a=\n" +
 	"\x0fParametersEntry\x12\x10\n" +
 	"\x03key\x18\x01 \x01(\tR\x03key\x12\x14\n" +
 	"\x05value\x18\x02 \x01(\tR\x05value:\x028\x01\"\x89\x01\n" +
@@ -474,15 +616,33 @@ const file_grql_v1_query_proto_rawDesc = "" +
 	"bool_value\x18\x04 \x01(\bH\x00R\tboolValue\x12!\n" +
 	"\vbytes_value\x18\x05 \x01(\fH\x00R\n" +
 	"bytesValueB\a\n" +
-	"\x05value\"\x8f\x01\n" +
+	"\x05value\"\x90\x03\n" +
 	"\rQueryMetadata\x12#\n" +
 	"\rrows_affected\x18\x01 \x01(\x03R\frowsAffected\x12*\n" +
 	"\x11execution_time_ms\x18\x02 \x01(\x03R\x0fexecutionTimeMs\x12-\n" +
-	"\acolumns\x18\x03 \x03(\v2\x13.grql.v1.ColumnInfoR\acolumns\"4\n" +
+	"\acolumns\x18\x03 \x03(\v2\x13.grql.v1.ColumnInfoR\acolumns\x12.\n" +
+	"\tdata_type\x18\x04 \x01(\x0e2\x11.grql.v1.DataTypeR\bdataType\x12&\n" +
+	"\x0fgroup_by_fields\x18\x05 \x03(\tR\rgroupByFields\x12\x1f\n" +
+	"\vtime_fields\x18\x06 \x03(\tR\n" +
+	"timeFields\x12G\n" +
+	"\vfield_units\x18\a \x03(\v2&.grql.v1.QueryMetadata.FieldUnitsEntryR\n" +
+	"fieldUnits\x1a=\n" +
+	"\x0fFieldUnitsEntry\x12\x10\n" +
+	"\x03key\x18\x01 \x01(\tR\x03key\x12\x14\n" +
+	"\x05value\x18\x02 \x01(\tR\x05value:\x028\x01\"4\n" +
 	"\n" +
 	"ColumnInfo\x12\x12\n" +
 	"\x04name\x18\x01 \x01(\tR\x04name\x12\x12\n" +
-	"\x04type\x18\x02 \x01(\tR\x04type2\x8b\x01\n" +
+	"\x04type\x18\x02 \x01(\tR\x04type*<\n" +
+	"\bDataType\x12\t\n" +
+	"\x05TABLE\x10\x00\x12\x0f\n" +
+	"\vTIME_SERIES\x10\x01\x12\b\n" +
+	"\x04LOGS\x10\x02\x12\n" +
+	"\n" +
+	"\x06TRACES\x10\x03*)\n" +
+	"\x0eResponseFormat\x12\f\n" +
+	"\bPROTOBUF\x10\x00\x12\t\n" +
+	"\x05ARROW\x10\x012\x8b\x01\n" +
 	"\fQueryService\x12=\n" +
 	"\fExecuteQuery\x12\x15.grql.v1.QueryRequest\x1a\x16.grql.v1.QueryResponse\x12<\n" +
 	"\vStreamQuery\x12\x15.grql.v1.QueryRequest\x1a\x14.grql.v1.QueryResult0\x01B1Z/github.com/cedricziel/grql/proto/grql/v1;grqlv1b\x06proto3"
@@ -499,33 +659,40 @@ func file_grql_v1_query_proto_rawDescGZIP() []byte {
 	return file_grql_v1_query_proto_rawDescData
 }
 
-var file_grql_v1_query_proto_msgTypes = make([]protoimpl.MessageInfo, 8)
+var file_grql_v1_query_proto_enumTypes = make([]protoimpl.EnumInfo, 2)
+var file_grql_v1_query_proto_msgTypes = make([]protoimpl.MessageInfo, 9)
 var file_grql_v1_query_proto_goTypes = []any{
-	(*QueryRequest)(nil),  // 0: grql.v1.QueryRequest
-	(*QueryResponse)(nil), // 1: grql.v1.QueryResponse
-	(*QueryResult)(nil),   // 2: grql.v1.QueryResult
-	(*Value)(nil),         // 3: grql.v1.Value
-	(*QueryMetadata)(nil), // 4: grql.v1.QueryMetadata
-	(*ColumnInfo)(nil),    // 5: grql.v1.ColumnInfo
-	nil,                   // 6: grql.v1.QueryRequest.ParametersEntry
-	nil,                   // 7: grql.v1.QueryResult.FieldsEntry
+	(DataType)(0),         // 0: grql.v1.DataType
+	(ResponseFormat)(0),   // 1: grql.v1.ResponseFormat
+	(*QueryRequest)(nil),  // 2: grql.v1.QueryRequest
+	(*QueryResponse)(nil), // 3: grql.v1.QueryResponse
+	(*QueryResult)(nil),   // 4: grql.v1.QueryResult
+	(*Value)(nil),         // 5: grql.v1.Value
+	(*QueryMetadata)(nil), // 6: grql.v1.QueryMetadata
+	(*ColumnInfo)(nil),    // 7: grql.v1.ColumnInfo
+	nil,                   // 8: grql.v1.QueryRequest.ParametersEntry
+	nil,                   // 9: grql.v1.QueryResult.FieldsEntry
+	nil,                   // 10: grql.v1.QueryMetadata.FieldUnitsEntry
 }
 var file_grql_v1_query_proto_depIdxs = []int32{
-	6, // 0: grql.v1.QueryRequest.parameters:type_name -> grql.v1.QueryRequest.ParametersEntry
-	2, // 1: grql.v1.QueryResponse.results:type_name -> grql.v1.QueryResult
-	4, // 2: grql.v1.QueryResponse.metadata:type_name -> grql.v1.QueryMetadata
-	7, // 3: grql.v1.QueryResult.fields:type_name -> grql.v1.QueryResult.FieldsEntry
-	5, // 4: grql.v1.QueryMetadata.columns:type_name -> grql.v1.ColumnInfo
-	3, // 5: grql.v1.QueryResult.FieldsEntry.value:type_name -> grql.v1.Value
-	0, // 6: grql.v1.QueryService.ExecuteQuery:input_type -> grql.v1.QueryRequest
-	0, // 7: grql.v1.QueryService.StreamQuery:input_type -> grql.v1.QueryRequest
-	1, // 8: grql.v1.QueryService.ExecuteQuery:output_type -> grql.v1.QueryResponse
-	2, // 9: grql.v1.QueryService.StreamQuery:output_type -> grql.v1.QueryResult
-	8, // [8:10] is the sub-list for method output_type
-	6, // [6:8] is the sub-list for method input_type
-	6, // [6:6] is the sub-list for extension type_name
-	6, // [6:6] is the sub-list for extension extendee
-	0, // [0:6] is the sub-list for field type_name
+	8,  // 0: grql.v1.QueryRequest.parameters:type_name -> grql.v1.QueryRequest.ParametersEntry
+	1,  // 1: grql.v1.QueryRequest.response_format:type_name -> grql.v1.ResponseFormat
+	4,  // 2: grql.v1.QueryResponse.results:type_name -> grql.v1.QueryResult
+	6,  // 3: grql.v1.QueryResponse.metadata:type_name -> grql.v1.QueryMetadata
+	9,  // 4: grql.v1.QueryResult.fields:type_name -> grql.v1.QueryResult.FieldsEntry
+	7,  // 5: grql.v1.QueryMetadata.columns:type_name -> grql.v1.ColumnInfo
+	0,  // 6: grql.v1.QueryMetadata.data_type:type_name -> grql.v1.DataType
+	10, // 7: grql.v1.QueryMetadata.field_units:type_name -> grql.v1.QueryMetadata.FieldUnitsEntry
+	5,  // 8: grql.v1.QueryResult.FieldsEntry.value:type_name -> grql.v1.Value
+	2,  // 9: grql.v1.QueryService.ExecuteQuery:input_type -> grql.v1.QueryRequest
+	2,  // 10: grql.v1.QueryService.StreamQuery:input_type -> grql.v1.QueryRequest
+	3,  // 11: grql.v1.QueryService.ExecuteQuery:output_type -> grql.v1.QueryResponse
+	4,  // 12: grql.v1.QueryService.StreamQuery:output_type -> grql.v1.QueryResult
+	11, // [11:13] is the sub-list for method output_type
+	9,  // [9:11] is the sub-list for method input_type
+	9,  // [9:9] is the sub-list for extension type_name
+	9,  // [9:9] is the sub-list for extension extendee
+	0,  // [0:9] is the sub-list for field type_name
 }
 
 func init() { file_grql_v1_query_proto_init() }
@@ -545,13 +712,14 @@ func file_grql_v1_query_proto_init() {
 		File: protoimpl.DescBuilder{
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: unsafe.Slice(unsafe.StringData(file_grql_v1_query_proto_rawDesc), len(file_grql_v1_query_proto_rawDesc)),
-			NumEnums:      0,
-			NumMessages:   8,
+			NumEnums:      2,
+			NumMessages:   9,
 			NumExtensions: 0,
 			NumServices:   1,
 		},
 		GoTypes:           file_grql_v1_query_proto_goTypes,
 		DependencyIndexes: file_grql_v1_query_proto_depIdxs,
+		EnumInfos:         file_grql_v1_query_proto_enumTypes,
 		MessageInfos:      file_grql_v1_query_proto_msgTypes,
 	}.Build()
 	File_grql_v1_query_proto = out.File

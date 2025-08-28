@@ -26,7 +26,7 @@ updates:
 
   # Docker dependencies (if we add a Dockerfile)
   - package-ecosystem: "docker"
-    directory: "/"
+    directory: "/server"
     schedule:
       interval: "daily"
     open-pull-requests-limit: 5

@@ -9,7 +9,7 @@ import (
 	"google.golang.org/grpc/credentials"
 	"google.golang.org/grpc/credentials/insecure"
 
-	pb "github.com/cedricziel/grql/grafana-plugin/internal/proto/grql/v1"
+	pb "github.com/cedricziel/grql/pkg/grql/v1"
 	"github.com/cedricziel/grql/grafana-plugin/pkg/models"
 )
 

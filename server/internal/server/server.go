@@ -7,7 +7,7 @@ import (
 	"os"
 
 	"github.com/cedricziel/grql/server/internal/engine"
-	pb "github.com/cedricziel/grql/server/internal/proto/grql/v1"
+	pb "github.com/cedricziel/grql/pkg/grql/v1"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
 )

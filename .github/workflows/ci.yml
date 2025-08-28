@@ -20,23 +20,13 @@ jobs:
         with:
           go-version: ${{ env.GO_VERSION }}
           cache: true
-          cache-dependency-path: |
-            server/go.sum
-            grafana-plugin/go.sum
+          cache-dependency-path: go.sum
 
-      - name: golangci-lint server
+      - name: golangci-lint
         uses: golangci/golangci-lint-action@v8
         with:
           version: latest
           args: --timeout=10m
-          working-directory: server
-
-      - name: golangci-lint grafana-plugin
-        uses: golangci/golangci-lint-action@v8
-        with:
-          version: latest
-          args: --timeout=10m
-          working-directory: grafana-plugin
 
   test:
     name: Test
@@ -52,14 +42,10 @@ jobs:
         with:
           go-version: ${{ matrix.go }}
           cache: true
-          cache-dependency-path: |
-            server/go.sum
-            grafana-plugin/go.sum
+          cache-dependency-path: go.sum
 
       - name: Run tests
-        run: |
-          cd server && go test ./...
-          cd ../grafana-plugin && go test ./pkg/...
+        run: go test ./server/... ./grafana-plugin/pkg/...
 
       - name: Upload coverage
         if: matrix.os == 'ubuntu-latest' && matrix.go == '1.25'
@@ -115,10 +101,10 @@ jobs:
         with:
           go-version: ${{ env.GO_VERSION }}
           cache: true
-          cache-dependency-path: server/go.sum
+          cache-dependency-path: go.sum
 
       - name: Run integration tests
-        run: cd server && go test -v -tags=integration -timeout 10m ./...
+        run: go test -v -tags=integration -timeout 10m ./server/...
         timeout-minutes: 15
 
   build:
@@ -145,14 +131,13 @@ jobs:
         with:
           go-version: ${{ env.GO_VERSION }}
           cache: true
-          cache-dependency-path: server/go.sum
+          cache-dependency-path: go.sum
 
       - name: Build binary
         env:
           GOOS: ${{ matrix.goos }}
           GOARCH: ${{ matrix.goarch }}
-        run: |
-          cd server && go build -v -o ../grql-${{ matrix.goos }}-${{ matrix.goarch }} ./cmd/server
+        run: go build -v -o grql-${{ matrix.goos }}-${{ matrix.goarch }} ./server/cmd/server
 
       - name: Upload artifact
         uses: actions/upload-artifact@v4
@@ -170,9 +155,7 @@ jobs:
         with:
           go-version: ${{ env.GO_VERSION }}
           cache: true
-          cache-dependency-path: |
-            server/go.sum
-            grafana-plugin/go.sum
+          cache-dependency-path: go.sum
 
       - name: Install protoc
         uses: arduino/setup-protoc@v3

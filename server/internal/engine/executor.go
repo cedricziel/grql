@@ -7,7 +7,7 @@ import (
 	"time"
 
 	"github.com/cedricziel/grql/server/internal/engine/backends"
-	pb "github.com/cedricziel/grql/server/internal/proto/grql/v1"
+	pb "github.com/cedricziel/grql/pkg/grql/v1"
 )
 
 // BackendClient interface for backend operations

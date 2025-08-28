@@ -11,7 +11,7 @@ import (
 	"github.com/grafana/grafana-plugin-sdk-go/backend/instancemgmt"
 	"github.com/grafana/grafana-plugin-sdk-go/data"
 
-	pb "github.com/cedricziel/grql/grafana-plugin/internal/proto/grql/v1"
+	pb "github.com/cedricziel/grql/pkg/grql/v1"
 	"github.com/cedricziel/grql/grafana-plugin/pkg/models"
 )
 

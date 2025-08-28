@@ -9,7 +9,7 @@ import (
 	"os/signal"
 	"syscall"
 
-	pb "github.com/cedricziel/grql/server/internal/proto/grql/v1"
+	pb "github.com/cedricziel/grql/pkg/grql/v1"
 	"github.com/cedricziel/grql/server/internal/server"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/reflection"

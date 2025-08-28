@@ -2,36 +2,29 @@
 .PHONY: plugin-install plugin-build plugin-dev plugin-backend plugin-frontend plugin-up plugin-down
 
 # Proto generation
-proto: proto-server proto-plugin
-
-proto-server:
-	protoc --go_out=server/internal/proto --go_opt=paths=source_relative \
-		--go-grpc_out=server/internal/proto --go-grpc_opt=paths=source_relative \
-		--proto_path=proto proto/grql/v1/query.proto
-
-proto-plugin:
-	protoc --go_out=grafana-plugin/internal/proto --go_opt=paths=source_relative \
-		--go-grpc_out=grafana-plugin/internal/proto --go-grpc_opt=paths=source_relative \
+proto:
+	protoc --go_out=pkg --go_opt=paths=source_relative \
+		--go-grpc_out=pkg --go-grpc_opt=paths=source_relative \
 		--proto_path=proto proto/grql/v1/query.proto
 
 clean:
+	rm -f pkg/grql/v1/*.pb.go
 	rm -f server/internal/proto/*.pb.go
 	rm -f grafana-plugin/internal/proto/*.pb.go
 	rm -rf bin/
 
 # Server targets
-build: proto-server
-	cd server && go build -o ../bin/grql-server cmd/server/main.go
+build: proto
+	go build -o bin/grql-server ./server/cmd/server
 
 run: build
 	./bin/grql-server
 
 test:
-	cd server && go test ./...
-	cd grafana-plugin && go test ./pkg/...
+	go test ./server/... ./grafana-plugin/pkg/...
 
 test-integration:
-	cd server && go test -v -tags=integration -timeout 10m ./...
+	go test -v -tags=integration -timeout 10m ./server/...
 
 # Grafana Plugin Targets
 plugin-install:
@@ -59,16 +52,14 @@ plugin-logs:
 
 # Workspace management
 tidy:
-	cd server && go mod tidy
-	cd grafana-plugin && go mod tidy
+	go mod tidy
 
 update-deps:
-	cd server && go get -u ./...
-	cd grafana-plugin && go get -u ./...
+	go get -u ./...
 
 # Development helpers
-dev-server: proto-server
-	cd server && go run cmd/server/main.go
+dev-server: proto
+	go run ./server/cmd/server
 
 dev-all:
 	make -j2 dev-server plugin-dev

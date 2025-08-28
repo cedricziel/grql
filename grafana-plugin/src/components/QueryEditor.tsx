@@ -1,12 +1,12 @@
 import React from 'react';
-import { InlineField, Select, Stack, CodeEditor } from '@grafana/ui';
-import { QueryEditorProps, SelectableValue } from '@grafana/data';
+import { InlineField, Combobox, Stack, CodeEditor, ComboboxOption } from '@grafana/ui';
+import { QueryEditorProps } from '@grafana/data';
 import { DataSource } from '../datasource';
 import { GrqlDataSourceOptions, GrqlQuery } from '../types';
 
 type Props = QueryEditorProps<DataSource, GrqlQuery, GrqlDataSourceOptions>;
 
-const formatOptions: Array<SelectableValue<string>> = [
+const formatOptions: Array<ComboboxOption<string>> = [
   { label: 'Time series', value: 'time_series', description: 'For graph panels' },
   { label: 'Table', value: 'table', description: 'For table panels' },
 ];
@@ -16,9 +16,11 @@ export function QueryEditor({ query, onChange, onRunQuery }: Props) {
     onChange({ ...query, rawQuery: value });
   };
 
-  const onFormatChange = (value: SelectableValue<string>) => {
-    onChange({ ...query, format: value.value as 'table' | 'time_series' });
-    onRunQuery();
+  const onFormatChange = (option: ComboboxOption<string> | null) => {
+    if (option) {
+      onChange({ ...query, format: option.value as 'table' | 'time_series' });
+      onRunQuery();
+    }
   };
 
   const onBlur = () => {
@@ -30,9 +32,9 @@ export function QueryEditor({ query, onChange, onRunQuery }: Props) {
   return (
     <Stack gap={1} direction="column">
       <InlineField label="Format" labelWidth={14} grow>
-        <Select
+        <Combobox
           options={formatOptions}
-          value={formatOptions.find((option) => option.value === format) || formatOptions[0]}
+          value={format || 'time_series'}
           onChange={onFormatChange}
         />
       </InlineField>

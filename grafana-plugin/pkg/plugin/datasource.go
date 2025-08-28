@@ -247,8 +247,14 @@ func (d *Datasource) convertToDataFrame(resp *pb.QueryResponse, format string, t
 					fields[i].Append(&v.StringValue)
 				}
 			case *pb.Value_IntValue:
-				intVal := int64(v.IntValue)
-				fields[i].Append(&intVal)
+				if col.Type == "TIMESTAMP" || col.Type == "TIME" {
+					// Convert Unix timestamp to time.Time
+					t := time.Unix(v.IntValue, 0)
+					fields[i].Append(&t)
+				} else {
+					intVal := int64(v.IntValue)
+					fields[i].Append(&intVal)
+				}
 			case *pb.Value_FloatValue:
 				floatVal := float64(v.FloatValue)
 				fields[i].Append(&floatVal)

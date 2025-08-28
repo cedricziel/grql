@@ -33,3 +33,13 @@ updates:
     commit-message:
       prefix: "build"
       include: "scope"
+
+  # NPM dependencies for the Grafana plugin
+  - package-ecosystem: "npm"
+    directory: "grafana-plugin"
+    schedule:
+      interval: "daily"
+    open-pull-requests-limit: 5
+    commit-message:
+      prefix: "build"
+      include: "scope"

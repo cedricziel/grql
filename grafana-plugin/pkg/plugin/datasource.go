@@ -47,10 +47,17 @@ func NewDatasource(ctx context.Context, settings backend.DataSourceInstanceSetti
 	}, nil
 }
 
+// GrqlClientInterface defines the interface for a GRQL client
+type GrqlClientInterface interface {
+	ExecuteQuery(ctx context.Context, query string, params map[string]string) (*pb.QueryResponse, error)
+	StreamQuery(ctx context.Context, query string, params map[string]string) (pb.QueryService_StreamQueryClient, error)
+	Close() error
+}
+
 // Datasource is an example datasource which can respond to data queries, reports
 // its health and has streaming skills.
 type Datasource struct {
-	client   *GrqlClient
+	client   GrqlClientInterface
 	settings *models.PluginSettings
 	mu       sync.Mutex
 }
@@ -160,10 +167,24 @@ func (d *Datasource) convertToDataFrame(resp *pb.QueryResponse, format string, t
 	if len(columns) == 0 {
 		// If no column info, create columns from first result
 		if len(resp.Results) > 0 && len(resp.Results[0].Fields) > 0 {
-			for key := range resp.Results[0].Fields {
+			for key, val := range resp.Results[0].Fields {
+				// Detect type from the actual value
+				colType := "STRING"
+				if val != nil && val.Value != nil {
+					switch val.Value.(type) {
+					case *pb.Value_IntValue:
+						colType = "INT64"
+					case *pb.Value_FloatValue:
+						colType = "FLOAT64"
+					case *pb.Value_BoolValue:
+						colType = "BOOL"
+					case *pb.Value_BytesValue:
+						colType = "BYTES"
+					}
+				}
 				columns = append(columns, &pb.ColumnInfo{
 					Name: key,
-					Type: "STRING", // Default type
+					Type: colType,
 				})
 			}
 		} else {
@@ -193,21 +214,34 @@ func (d *Datasource) convertToDataFrame(resp *pb.QueryResponse, format string, t
 
 		fields[i] = data.NewField(col.Name, nil, values)
 
+		// Build field configuration
+		fieldConfig := &data.FieldConfig{}
+		hasConfig := false
+
 		// Apply field unit from metadata if available
 		if unit, ok := resp.Metadata.FieldUnits[col.Name]; ok && unit != "" {
-			fields[i].Config = &data.FieldConfig{
-				Unit: unit,
-			}
+			fieldConfig.Unit = unit
+			hasConfig = true
+		}
+
+		// Set display name (can be customized later)
+		if col.Name != "" {
+			fieldConfig.DisplayName = col.Name
+			hasConfig = true
 		}
 
 		// Mark time fields if identified in metadata
 		for _, timeField := range resp.Metadata.TimeFields {
 			if col.Name == timeField {
-				fields[i].Config = &data.FieldConfig{
-					Interval: 1000, // Default to 1 second interval
-				}
+				fieldConfig.Interval = 1000 // Default to 1 second interval
+				hasConfig = true
 				break
 			}
+		}
+
+		// Only set config if we have something to configure
+		if hasConfig {
+			fields[i].Config = fieldConfig
 		}
 	}
 
@@ -215,7 +249,7 @@ func (d *Datasource) convertToDataFrame(resp *pb.QueryResponse, format string, t
 	for _, row := range resp.Results {
 		for i, col := range columns {
 			val, exists := row.Fields[col.Name]
-			if !exists || val == nil {
+			if !exists || val == nil || val.Value == nil {
 				// Add nil to the appropriate field
 				switch fields[i].Type() {
 				case data.FieldTypeNullableInt64:
@@ -249,8 +283,16 @@ func (d *Datasource) convertToDataFrame(resp *pb.QueryResponse, format string, t
 			case *pb.Value_IntValue:
 				if col.Type == "TIMESTAMP" || col.Type == "TIME" {
 					// Convert Unix timestamp to time.Time
-					t := time.Unix(v.IntValue, 0)
-					fields[i].Append(&t)
+					// Check if it's likely milliseconds (after year 2001 in ms)
+					if v.IntValue > 1000000000000 {
+						// Milliseconds
+						t := time.Unix(v.IntValue/1000, (v.IntValue%1000)*1000000)
+						fields[i].Append(&t)
+					} else {
+						// Seconds
+						t := time.Unix(v.IntValue, 0)
+						fields[i].Append(&t)
+					}
 				} else {
 					intVal := int64(v.IntValue)
 					fields[i].Append(&intVal)
@@ -260,8 +302,21 @@ func (d *Datasource) convertToDataFrame(resp *pb.QueryResponse, format string, t
 				fields[i].Append(&floatVal)
 			case *pb.Value_BoolValue:
 				fields[i].Append(&v.BoolValue)
+			case *pb.Value_BytesValue:
+				// Convert bytes to base64 string for display
+				if col.Type == "BYTES" || col.Type == "BINARY" {
+					// For binary data, we could store as-is or convert to string
+					// Grafana doesn't have a native bytes field type, so we use string
+					encoded := string(v.BytesValue)
+					fields[i].Append(&encoded)
+				} else {
+					// Treat as string if column type is not explicitly bytes
+					str := string(v.BytesValue)
+					fields[i].Append(&str)
+				}
 			default:
 				// Handle unknown types as nil
+				backend.Logger.Warn("Unknown value type in response", "type", fmt.Sprintf("%T", val.Value))
 				fields[i].Append(nil)
 			}
 		}

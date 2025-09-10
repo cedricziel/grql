@@ -5,7 +5,7 @@ go 1.25.0
 require (
 	github.com/grafana/grafana-plugin-sdk-go v0.278.0
 	github.com/testcontainers/testcontainers-go v0.38.0
-	google.golang.org/grpc v1.75.0
+	google.golang.org/grpc v1.75.1
 	google.golang.org/protobuf v1.36.8
 	vitess.io/vitess v0.22.1
 )

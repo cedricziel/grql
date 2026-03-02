@@ -6,7 +6,7 @@ require (
 	github.com/grafana/grafana-plugin-sdk-go v0.284.0
 	github.com/testcontainers/testcontainers-go v0.38.0
 	google.golang.org/grpc v1.76.0
-	google.golang.org/protobuf v1.36.10
+	google.golang.org/protobuf v1.36.11
 	vitess.io/vitess v0.22.1
 )
 

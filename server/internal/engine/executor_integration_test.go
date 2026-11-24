@@ -8,8 +8,8 @@ import (
 	"testing"
 	"time"
 
-	"github.com/cedricziel/grql/server/internal/engine/backends"
 	pb "github.com/cedricziel/grql/pkg/grql/v1"
+	"github.com/cedricziel/grql/server/internal/engine/backends"
 )
 
 // TestExecutor_IntegrationWithMetadata tests full query execution with metadata
@@ -30,10 +30,10 @@ func TestExecutor_IntegrationWithMetadata(t *testing.T) {
 	ctx := context.Background()
 
 	tests := []struct {
+		validateMetadata func(*testing.T, *pb.QueryMetadata)
 		name             string
 		query            string
 		expectedDataType pb.DataType
-		validateMetadata func(*testing.T, *pb.QueryMetadata)
 	}{
 		{
 			name:             "metrics query with aggregation",
@@ -269,10 +269,6 @@ func createMockLogsBackend() BackendClient {
 				},
 			}, nil
 		},
-		caps: backends.Capabilities{
-			SupportsFullText: true,
-			SupportsRegex:    true,
-		},
 	}
 }
 
@@ -306,9 +302,6 @@ func createMockTracesBackend() BackendClient {
 				},
 			}, nil
 		},
-		caps: backends.Capabilities{
-			SupportsTraceQL: true,
-		},
 	}
 }
 
@@ -339,9 +332,6 @@ func createStreamingMetricsBackend() BackendClient {
 			}
 			// Channel will be closed by executor
 			return nil
-		},
-		caps: backends.Capabilities{
-			SupportsStreaming: true,
 		},
 	}
 }

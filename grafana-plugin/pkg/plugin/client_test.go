@@ -98,8 +98,8 @@ func startTestServer(t *testing.T, useTLS bool, server *testGRPCServer) (string,
 
 func TestGrqlClient_NewClient(t *testing.T) {
 	tests := []struct {
-		name     string
 		settings *models.PluginSettings
+		name     string
 		wantErr  bool
 	}{
 		{

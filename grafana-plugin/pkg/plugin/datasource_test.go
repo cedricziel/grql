@@ -307,8 +307,8 @@ func TestConvertToDataFrame_DataTypeVisualization(t *testing.T) {
 
 	tests := []struct {
 		name                  string
-		dataType              pb.DataType
 		expectedVisualization data.VisType
+		dataType              pb.DataType
 	}{
 		{
 			name:                  "time series",

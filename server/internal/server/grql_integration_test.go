@@ -41,7 +41,7 @@ scrape_configs:
     static_configs:
       - targets: ['localhost:9090']
 `
-	
+
 	req := testcontainers.ContainerRequest{
 		Image:        "prom/prometheus:latest",
 		ExposedPorts: []string{"9090/tcp"},
@@ -93,18 +93,18 @@ scrape_configs:
 	// Push test metrics to Prometheus
 	t.Run("PushMetrics", func(t *testing.T) {
 		metrics := generateTestMetrics()
-		
+
 		// Push metrics using Prometheus remote write endpoint
 		pushURL := promURL + "/api/v1/write"
-		
+
 		for i := 0; i < 3; i++ {
 			// Push metrics multiple times to create time series
-			err := pushMetricsToPrometheus(pushURL, metrics)
-			if err != nil {
+			pushErr := pushMetricsToPrometheus(pushURL, metrics)
+			if pushErr != nil {
 				// Try exposition format as fallback
-				err = pushMetricsExposition(promURL, metrics)
-				if err != nil {
-					t.Logf("Failed to push metrics (attempt %d): %v", i+1, err)
+				pushErr = pushMetricsExposition(promURL, metrics)
+				if pushErr != nil {
+					t.Logf("Failed to push metrics (attempt %d): %v", i+1, pushErr)
 				}
 			}
 			time.Sleep(10 * time.Second) // Wait between pushes to create time series
@@ -113,7 +113,7 @@ scrape_configs:
 
 	// Set environment variable for GRQL server to use our Prometheus instance
 	t.Setenv("MIMIR_URL", promURL)
-	
+
 	// Start GRQL server pointing to Prometheus
 	grqlServer := New()
 
@@ -127,14 +127,14 @@ scrape_configs:
 	pb.RegisterQueryServiceServer(grpcServer, grqlServer)
 
 	go func() {
-		if err := grpcServer.Serve(lis); err != nil {
-			t.Logf("Failed to serve: %v", err)
+		if serveErr := grpcServer.Serve(lis); serveErr != nil {
+			t.Logf("Failed to serve: %v", serveErr)
 		}
 	}()
 	defer grpcServer.Stop()
 
 	// Create gRPC client
-	conn, err := grpc.Dial(lis.Addr().String(), grpc.WithTransportCredentials(insecure.NewCredentials()))
+	conn, err := grpc.NewClient(lis.Addr().String(), grpc.WithTransportCredentials(insecure.NewCredentials()))
 	if err != nil {
 		t.Fatalf("Failed to connect to GRQL server: %v", err)
 	}
@@ -147,10 +147,10 @@ scrape_configs:
 
 	// Test various queries
 	testCases := []struct {
+		validate    func(*testing.T, *pb.QueryResponse)
 		name        string
 		query       string
 		expectError bool
-		validate    func(*testing.T, *pb.QueryResponse)
 	}{
 		{
 			name:  "Simple SELECT",
@@ -273,7 +273,7 @@ scrape_configs:
 // generateTestMetrics generates sample Prometheus metrics
 func generateTestMetrics() string {
 	timestamp := time.Now().Unix() * 1000 // Prometheus uses millisecond timestamps
-	
+
 	return fmt.Sprintf(`# HELP cpu_usage CPU usage percentage
 # TYPE cpu_usage gauge
 cpu_usage{host="server1",service="api"} 75.5 %d
@@ -315,7 +315,7 @@ response_time_seconds_count{endpoint="/api/users"} 1000 %d
 func pushMetricsExposition(promURL string, metrics string) error {
 	// Create a simple HTTP endpoint that Prometheus can scrape
 	// This is a simplified approach for testing
-	
+
 	// Try to push directly via the federate endpoint (not ideal but works for testing)
 	resp, err := http.Post(
 		promURL+"/api/v1/import/prometheus",
@@ -326,11 +326,11 @@ func pushMetricsExposition(promURL string, metrics string) error {
 		return err
 	}
 	defer resp.Body.Close()
-	
+
 	if resp.StatusCode >= 400 {
 		return fmt.Errorf("failed to push metrics: status %d", resp.StatusCode)
 	}
-	
+
 	return nil
 }
 
@@ -338,9 +338,8 @@ func pushMetricsExposition(promURL string, metrics string) error {
 func pushMetricsToPrometheus(pushURL string, metrics string) error {
 	// For simplicity in testing, we'll use the exposition format
 	// Real implementation would use Prometheus remote write protobuf format
-	
+
 	// This is a placeholder - real remote write requires protobuf encoding
 	// For now, we'll rely on Prometheus scraping or manual metric creation
 	return fmt.Errorf("remote write not implemented for testing")
 }
-

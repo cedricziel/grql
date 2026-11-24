@@ -12,6 +12,7 @@ import (
 	"testing"
 	"time"
 
+	"github.com/cedricziel/grql/grafana-plugin/pkg/models"
 	pb "github.com/cedricziel/grql/pkg/grql/v1"
 	"github.com/grafana/grafana-plugin-sdk-go/backend"
 	"google.golang.org/grpc"
@@ -175,10 +176,10 @@ func TestDatasource_Integration_QueryData(t *testing.T) {
 	defer ds.(*Datasource).Dispose()
 
 	tests := []struct {
+		validate    func(*testing.T, backend.DataResponse)
 		name        string
 		query       string
 		expectError bool
-		validate    func(*testing.T, backend.DataResponse)
 	}{
 		{
 			name:        "metrics query",

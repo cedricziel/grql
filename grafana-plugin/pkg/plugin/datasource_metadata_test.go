@@ -13,12 +13,12 @@ func TestConvertToDataFrame_WithMetadata(t *testing.T) {
 	ds := &Datasource{}
 
 	tests := []struct {
-		name           string
 		response       *pb.QueryResponse
+		validateFrame  func(*testing.T, *data.Frame)
+		name           string
 		format         string
 		expectedVis    data.VisType
 		expectedFields int
-		validateFrame  func(*testing.T, *data.Frame)
 	}{
 		{
 			name: "time series with metadata",
@@ -199,8 +199,8 @@ func TestConvertToDataFrame_EmptyResponse(t *testing.T) {
 	ds := &Datasource{}
 
 	tests := []struct {
-		name     string
 		response *pb.QueryResponse
+		name     string
 	}{
 		{
 			name:     "nil response",

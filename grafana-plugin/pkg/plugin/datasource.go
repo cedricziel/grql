@@ -147,13 +147,14 @@ func (d *Datasource) convertToDataFrame(resp *pb.QueryResponse, format string, t
 	frame.Meta = &data.FrameMeta{}
 
 	// Set preferred visualization based on data type
-	if resp.Metadata.DataType == pb.DataType_TIME_SERIES {
+	switch resp.Metadata.DataType {
+	case pb.DataType_TIME_SERIES:
 		frame.Meta.PreferredVisualization = data.VisTypeGraph
-	} else if resp.Metadata.DataType == pb.DataType_LOGS {
+	case pb.DataType_LOGS:
 		frame.Meta.PreferredVisualization = data.VisTypeLogs
-	} else if resp.Metadata.DataType == pb.DataType_TRACES {
+	case pb.DataType_TRACES:
 		frame.Meta.PreferredVisualization = data.VisTypeTrace
-	} else {
+	default:
 		frame.Meta.PreferredVisualization = data.VisTypeTable
 	}
 

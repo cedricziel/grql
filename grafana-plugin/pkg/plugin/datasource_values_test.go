@@ -13,9 +13,9 @@ func TestConvertToDataFrame_AllValueTypes(t *testing.T) {
 	ds := &Datasource{}
 
 	tests := []struct {
-		name         string
 		response     *pb.QueryResponse
 		validateFunc func(*testing.T, *data.Frame)
+		name         string
 	}{
 		{
 			name: "string values",
@@ -341,9 +341,9 @@ func TestConvertToDataFrame_TimestampFormats(t *testing.T) {
 	nowRFC3339 := now.Format(time.RFC3339)
 
 	tests := []struct {
-		name         string
 		response     *pb.QueryResponse
 		validateFunc func(*testing.T, *data.Frame)
+		name         string
 	}{
 		{
 			name: "unix seconds timestamp",
@@ -589,10 +589,10 @@ func TestConvertToDataFrame_ErrorCases(t *testing.T) {
 	ds := &Datasource{}
 
 	tests := []struct {
-		name        string
 		response    *pb.QueryResponse
-		expectError bool
+		name        string
 		errorMsg    string
+		expectError bool
 	}{
 		{
 			name:        "nil response",

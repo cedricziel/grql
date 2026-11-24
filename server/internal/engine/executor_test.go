@@ -5,8 +5,8 @@ import (
 	"testing"
 	"time"
 
-	"github.com/cedricziel/grql/server/internal/engine/backends"
 	pb "github.com/cedricziel/grql/pkg/grql/v1"
+	"github.com/cedricziel/grql/server/internal/engine/backends"
 )
 
 // mockBackendClient implements BackendClient for testing
@@ -72,14 +72,14 @@ func TestExecutor_ExecuteQuery(t *testing.T) {
 	}
 
 	tests := []struct {
-		name           string
-		query          string
 		params         map[string]string
 		validateResult func(*testing.T, *pb.QueryResponse, error)
+		name           string
+		query          string
 	}{
 		{
-			name:  "simple metrics query",
-			query: "SELECT cpu_usage FROM metrics WHERE host = 'server1'",
+			name:   "simple metrics query",
+			query:  "SELECT cpu_usage FROM metrics WHERE host = 'server1'",
 			params: map[string]string{},
 			validateResult: func(t *testing.T, resp *pb.QueryResponse, err error) {
 				if err != nil {
@@ -111,8 +111,8 @@ func TestExecutor_ExecuteQuery(t *testing.T) {
 			},
 		},
 		{
-			name:  "query with GROUP BY",
-			query: "SELECT avg(cpu_usage) FROM metrics GROUP BY host",
+			name:   "query with GROUP BY",
+			query:  "SELECT avg(cpu_usage) FROM metrics GROUP BY host",
 			params: map[string]string{},
 			validateResult: func(t *testing.T, resp *pb.QueryResponse, err error) {
 				if err != nil {
@@ -261,8 +261,8 @@ func TestExecutor_ErrorHandling(t *testing.T) {
 	tests := []struct {
 		name        string
 		query       string
-		expectError bool
 		errorMsg    string
+		expectError bool
 	}{
 		{
 			name:        "invalid query syntax",
@@ -380,8 +380,8 @@ func TestExecutor_DataTypeDetection(t *testing.T) {
 // mockStreamServer implements pb.QueryService_StreamQueryServer for testing
 type mockStreamServer struct {
 	pb.QueryService_StreamQueryServer
-	results []*pb.QueryResult
 	ctx     context.Context
+	results []*pb.QueryResult
 }
 
 func (m *mockStreamServer) Send(result *pb.QueryResult) error {

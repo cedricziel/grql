@@ -109,28 +109,28 @@ func (m *MimirAdapter) translateToPromQL(query QueryRequest) string {
 		for _, agg := range query.Aggregates {
 			switch agg.Function {
 			case "count":
-				promQL.WriteString(fmt.Sprintf("count(%s)", query.MetricName))
+				fmt.Fprintf(&promQL, "count(%s)", query.MetricName)
 			case "sum":
-				promQL.WriteString(fmt.Sprintf("sum(%s)", query.MetricName))
+				fmt.Fprintf(&promQL, "sum(%s)", query.MetricName)
 			case "avg":
-				promQL.WriteString(fmt.Sprintf("avg(%s)", query.MetricName))
+				fmt.Fprintf(&promQL, "avg(%s)", query.MetricName)
 			case "min":
-				promQL.WriteString(fmt.Sprintf("min(%s)", query.MetricName))
+				fmt.Fprintf(&promQL, "min(%s)", query.MetricName)
 			case "max":
-				promQL.WriteString(fmt.Sprintf("max(%s)", query.MetricName))
+				fmt.Fprintf(&promQL, "max(%s)", query.MetricName)
 			case "rate":
-				promQL.WriteString(fmt.Sprintf("rate(%s[5m])", query.MetricName))
+				fmt.Fprintf(&promQL, "rate(%s[5m])", query.MetricName)
 			case "p95":
-				promQL.WriteString(fmt.Sprintf("quantile(0.95, %s)", query.MetricName))
+				fmt.Fprintf(&promQL, "quantile(0.95, %s)", query.MetricName)
 			case "p99":
-				promQL.WriteString(fmt.Sprintf("quantile(0.99, %s)", query.MetricName))
+				fmt.Fprintf(&promQL, "quantile(0.99, %s)", query.MetricName)
 			default:
 				promQL.WriteString(query.MetricName)
 			}
 
 			// Add grouping
 			if len(query.GroupBy) > 0 {
-				promQL.WriteString(fmt.Sprintf(" by (%s)", strings.Join(query.GroupBy, ", ")))
+				fmt.Fprintf(&promQL, " by (%s)", strings.Join(query.GroupBy, ", "))
 			}
 
 			// Only handle first aggregate for now
